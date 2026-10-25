@@ -1,16 +1,22 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PlagTrace — Limitations</title><link rel="stylesheet" href="styles.css"></head>
-<body><header><h1>PlagTrace — Limitations</h1><nav><a href="index.html">Compare</a></nav></header><main>
+<body><a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
+<nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a> · <a href="security.html">Contact</a></nav></header>
+<main id="main">
 <p class="banner">This is a screening aid. Only a human reviewer may decide misconduct, after giving the student a chance to respond.</p>
+<h1>Limitations</h1>
 <h2>What this tool cannot detect</h2><ul>
 <li>Paraphrase that changes most words: k-gram methods need shared word sequences. Heavy rewording, summarising, and translation fall below the threshold by design.</li>
 <li>Ideas, structure, or data copied without shared wording; figures, tables, and images.</li>
 <li>Scanned-image PDFs, encrypted PDFs, and some .docx files with unusual compression.</li>
 <li>Code that has been restructured (reordered blocks, different algorithm) — token normalisation survives renaming, not redesign.</li>
-<li>Anything outside the documents you supply: this tool has no web search and no reference database, because it never uploads your text.</li>
+<li>Anything outside the documents you supply or the sources you opt to search: the local check has no web search and no reference database, and the optional internet check searches Wikipedia and Semantic Scholar only — it is not the whole web, not Turnitin's database, and not Chegg, CourseHero, or publisher databases. A "no match" always means "no match in the sources checked", never "no match anywhere". See <a href="internet-check.html">Internet check limits</a>.</li>
 </ul><h2>Known failure modes</h2><ul>
 <li>False positives from templates, boilerplate, standard phrases, and shared terminology — mitigated, not eliminated, by quote/citation/boilerplate exclusion.</li>
 <li>False negatives from short documents: with k=5, a document under a few dozen words has too few shingles for a stable score.</li>
 <li>Scores are not probabilities and not comparable across different settings. Changing k, window, or the minimum threshold changes the result; the report records the settings so a result can be reproduced exactly.</li>
 <li>There is no AI-text detection in this tool, and none should be inferred from a similarity score.</li>
+<li>Results become outdated if you edit a document, change a setting, or remove a source without re-running. The page now marks such results as outdated — do not quote an outdated result.</li>
 </ul><h2>How to use a result responsibly</h2><p>Read the highlighted passages. Check whether the match is a quote, a citation, a template, or standard wording. Give the author a chance to respond before any decision. Keep the exported JSON report with its hashes, settings, version, and timestamp as the audit trail.</p>
-</main></body></html>
+</main>
+<footer><p>PlagTrace v0.6.0 · MIT · By <a href="https://github.com/hydope">hydope</a> · <a href="https://github.com/hydope/PlagTrace/issues">Report a bug / false positive</a> · <a href="changelog.html">Changelog</a> · <a href="security.html">Security &amp; contact</a></p></footer></body></html>

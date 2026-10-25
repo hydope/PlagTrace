@@ -28,3 +28,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 mark{background:#ffe066;padding:.1em}.side{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.side p{white-space:pre-wrap;word-break:break-word}
 .skip{position:absolute;left:-9999px}.skip:focus{left:1rem;background:#fff;padding:.5rem}
 footer{border-top:1px solid var(--line);padding:1rem;text-align:center;color:var(--muted)}
+.stale{background:#fde8e0;border:2px solid var(--red);padding:.75rem 1rem;font-weight:700;border-radius:.5rem;margin-bottom:1rem}.stale:empty{display:none}
+.keptnote{background:#e6f4ea;border:2px solid var(--green);padding:.75rem 1rem;font-weight:600;border-radius:.5rem}
+.gloss{background:#eff8ff;border-left:4px solid var(--blue);padding:.75rem}
+#settingsBadge{display:inline-block;background:#e6f4ea;border:1px solid var(--green);padding:.1rem .5rem;border-radius:1rem;font-size:.85rem;font-weight:700}
+@media print{body{background:#fff}.top,footer,.hero,.card,button,.filebtn,details,#staleNote,section[aria-labelledby]{display:none!important}main{max-width:none;padding:0}.side{grid-template-columns:1fr!important}}

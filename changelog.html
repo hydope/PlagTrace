@@ -6,7 +6,18 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
-<h2>v0.5.0 — 2026-10-24 (this release, local until approved)</h2>
+<h2>v0.6.0 — 2026-10-24 (engine unchanged, so v0.5.0 accuracy numbers still apply)</h2>
+<ul>
+<li>Stale results fixed: editing a document, changing a setting, or removing a source marks results as outdated until you re-run.</li>
+<li>Removed sources now named on screen (fully removed this session plus unticked for this run), not only in the JSON export.</li>
+<li>Reviewer decisions kept across re-scans for matches that still exist, with a "decisions kept" note.</li>
+<li>Limitations page rebuilt with the full header/nav/footer and corrected wording: local check has no web search, optional internet check is Wikipedia + Semantic Scholar only.</li>
+<li>Step order fixed: Sources (including internet) is now step 2, Check is step 3. Internet search no longer tells you to run an unnecessary second check.</li>
+<li>Semantic Scholar failures now distinguish a network/browser block from a rate limit (HTTP 429) or other HTTP error.</li>
+<li>Results panel now defines every metric and band in plain words. Advanced settings show a "Defaults" / "N setting(s) changed" badge.</li>
+<li>Keyboard: Enter/Space on a dropzone opens its file picker. Print stylesheet: report only, no inputs or hero. Export: zero matches now correctly reports decisions as incomplete ("No matches to review").</li>
+</ul>
+<h2>v0.5.0 — 2026-10-24 (published 2026-10-24)</h2>
 <ul>
 <li>Accuracy page rewritten after a second critic review (8.5/10): leads with "about 1 in 5 flags was innocent" (first set) and paraphrase 0/3; counts by pair with 95% Wilson intervals; per-category table; held-out 30-pair set (precision 0.83, recall 0.67, FPR 0.13); base-rate illustration (at 2% prevalence, ~91% of flags innocent); Wikipedia result relabelled a smoke test; version/tag stated.</li>
 <li>Code fix: a single short passage alone no longer flags for review (2 matches, or ≥150 chars, or ≥90 matched chars covering ≥50% of Document A). Unflagged passages are still shown, labelled "not flagged". Cost: main-set recall fell to 0.57 — stated, not hidden.</li>
@@ -25,4 +36,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.5.0 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.6.0 · MIT</p></footer></body></html>

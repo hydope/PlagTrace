@@ -69,6 +69,6 @@ export async function fetchInternetSources(text) {
         for (const p of (j.data || [])) if (p.abstract) sources.push({ name: `Semantic Scholar: ${p.title}`, text: `${p.title}. ${p.abstract}`, url: p.url || '', included: true });
       } else errors.push(`Semantic Scholar HTTP ${r.status} — skipped, not a "no match".`);
     }
-  } catch (e) { errors.push(`Semantic Scholar unreachable: ${e.message} — skipped, not a "no match".`); }
+  } catch (e) { errors.push(`Semantic Scholar unreachable (network or browser block, not a rate limit — the request never reached a server response): ${e.message} — skipped, not a "no match". If you see this repeatedly, try again later; Wikipedia results above are unaffected.`); }
   return { sources, errors, phrases };
 }

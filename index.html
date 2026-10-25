@@ -21,7 +21,7 @@
 <p class="counts"><span id="countA">0 words · 0 characters</span> <span id="fileAName"></span></p>
 <p><button id="pasteA" type="button">Paste from clipboard</button> <label class="filebtn">Upload file <input id="fileA" type="file" accept=".txt,.md,.docx,.pdf,.js,.py,.java,.c,.cpp,.ts,.html,.css"></label></p></div>
 <div class="card dropzone" id="dropB" tabindex="0"><label for="docB">Document B — optional</label>
-<p class="hint">Only if you have a second document to compare against. Most people don't — skip this and use Internet sources below instead.</p>
+<p class="hint">Only if you have a second document to compare against. Most people don't — skip this and use Internet sources in step 2 instead.</p>
 <textarea id="docB" rows="10" placeholder="Optional: paste a second document here, or drop a file onto this card…"></textarea>
 <p class="counts"><span id="countB">0 words · 0 characters</span> <span id="fileBName"></span></p>
 <p><button id="pasteB" type="button">Paste from clipboard</button> <label class="filebtn">Upload file <input id="fileB" type="file" accept=".txt,.md,.docx,.pdf,.js,.py,.java,.c,.cpp,.ts,.html,.css"></label></p></div>
@@ -32,9 +32,15 @@
 <p>Untick a source to remove it from the next run, or use its Remove button. Removed sources are named in the report — removal recalculates, it does not hide history.</p></div>
 </section>
 
-<section aria-labelledby="settings"><h2 id="settings">2 · Check</h2>
+<section aria-labelledby="internet"><h2 id="internet">2 · No second document? Optional internet sources</h2>
+<div class="card"><p><strong>Privacy trade-off, read before clicking:</strong> the local check sends nothing anywhere. Clicking below is the <em>only</em> step that sends anything out — the search phrases taken from Document A go to Wikipedia's public API and, best effort, Semantic Scholar. Full documents are never uploaded; only short search phrases are sent, and the comparison itself still runs in your browser.</p>
+<p><button id="netSearch" type="button">Search internet sources</button></p>
+<div id="netStatus" aria-live="polite"></div>
+<p>Fetched articles are added as reference sources above, with a link to each source. Untick or remove them like any other source. If Wikipedia or Semantic Scholar rate-limits you, that is reported — it is never read as "no match".</p></div>
+</section>
+<section aria-labelledby="settings"><h2 id="settings">3 · Check</h2>
 <p><button id="run" class="primary" type="button">Check similarity locally</button> <button id="loadDemo" type="button">Load demo pair</button></p>
-<details><summary>Advanced settings — you don't need to touch these. Defaults are sensible, and every setting used is shown in the exported report.</summary>
+<details><summary>Advanced settings — you don't need to touch these. Defaults are sensible, and every setting used is shown in the exported report. <span id="settingsBadge">Defaults</span></summary>
 <div class="grid">
 <label>What kind of text? <select id="mode"><option value="text">Prose (essays, papers)</option><option value="code">Source code (variable names ignored)</option></select></label>
 <label>Word chunk size — smaller catches shorter matches, larger is stricter (advanced: shingle k) <input id="k" type="number" value="5" min="3" max="12"></label>
@@ -49,13 +55,8 @@
 </details>
 <p>No AI-text detection and no "humanizer" are included, by design. <a href="ai-detection-note.html">Why no AI %</a></p>
 </section>
-<section aria-labelledby="internet"><h2 id="internet">3 · No second document? Optional internet sources</h2>
-<div class="card"><p><strong>Privacy trade-off, read before clicking:</strong> the local check sends nothing anywhere. Clicking below is the <em>only</em> step that sends anything out — the search phrases taken from Document A go to Wikipedia's public API and, best effort, Semantic Scholar. Full documents are never uploaded; only short search phrases are sent, and the comparison itself still runs in your browser.</p>
-<p><button id="netSearch" type="button">Search internet sources</button></p>
-<div id="netStatus" aria-live="polite"></div>
-<p>Fetched articles are added as reference sources above, with a link to each source. Untick or remove them like any other source. If Wikipedia or Semantic Scholar rate-limits you, that is reported — it is never read as "no match".</p></div>
-</section>
+<div id="staleNote" class="stale" aria-live="polite"></div>
 <section id="results" aria-live="polite"></section>
 </main>
-<footer><p>PlagTrace v0.5.0 · MIT · By <a href="https://github.com/hydope">hydope</a> · <a href="https://github.com/hydope/PlagTrace/issues">Report a bug / false positive</a> · <a href="changelog.html">Changelog</a> · <a href="security.html">Security &amp; contact</a> · Local check sends nothing anywhere; internet search is opt-in only.</p></footer>
+<footer><p>PlagTrace v0.6.0 · MIT · By <a href="https://github.com/hydope">hydope</a> · <a href="https://github.com/hydope/PlagTrace/issues">Report a bug / false positive</a> · <a href="changelog.html">Changelog</a> · <a href="security.html">Security &amp; contact</a> · Local check sends nothing anywhere; internet search is opt-in only.</p></footer>
 <script type="module" src="src/app.js"></script></body></html>
