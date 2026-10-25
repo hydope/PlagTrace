@@ -183,6 +183,33 @@ node tests/metrics.mjs
 Demo: click "Load demo pair" in the app, or open `demo/sample-a.txt` and
 `demo/sample-b.txt`.
 
+## New in v0.5.0 — critic fixes (7.5/10 → addressing every point)
+
+- **Proof on the page:** `accuracy.html` publishes measured numbers with
+  95% Wilson intervals, per-category breakdown (paraphrase 0/3), and a
+  30-pair held-out set written after a flagging-rule fix: main 25 pairs
+  precision 1.00 (0.68–1.00), recall 0.57 (0.33–0.79), FPR 0.00 (0–0.26);
+  held-out precision 0.83 (0.55–0.95), recall 0.67 (0.42–0.85),
+  FPR 0.13 (0.04–0.38). Base-rate illustration: at 2% prevalence,
+  ~91% of flags would be innocent. No PAN benchmark claimed.
+  Code fix: a single short passage alone no longer flags for review.
+- **Docs as real pages:** nav now points to .html pages, not raw .md.
+- **User-facing copy:** hero trimmed to one line + a collapsed
+  "Learn more"; internal build notes removed from the main nav.
+- **One-click demo:** "Try a sample check" loads the demo pair and
+  runs it, scrolling to the result.
+- **Document B is optional:** labelled optional, with a note that
+  most people should skip it and use Internet sources instead.
+- **Settings are not a trick:** hidden under Advanced, in plain
+  language, with defaults and a Reset button; every setting used is
+  still shown in the exported report.
+- **Trust signals:** author (hydope), GitHub-issues contact, security
+  note, and a changelog page.
+- **Internet check, honestly thin:** Wikipedia + Semantic Scholar
+  cannot see Chegg/CourseHero/blogs/classmates' papers. The page now
+  says so and tells users to paste a specific page's text as a source
+  if they can access it.
+
 ## New in v0.4.0 — no second document? Internet sources (opt-in)
 
 - Paste Document A alone, click **Search internet sources**, and

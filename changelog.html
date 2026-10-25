@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Changelog — PlagTrace</title>
+<link rel="stylesheet" href="styles.css"></head>
+<body><header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
+<nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
+<main>
+<h1>Changelog</h1>
+<h2>v0.5.0 — 2026-10-24 (this release, local until approved)</h2>
+<ul>
+<li>Accuracy page rewritten after a second critic review (8.5/10): leads with "about 1 in 5 flags was innocent" (first set) and paraphrase 0/3; counts by pair with 95% Wilson intervals; per-category table; held-out 30-pair set (precision 0.83, recall 0.67, FPR 0.13); base-rate illustration (at 2% prevalence, ~91% of flags innocent); Wikipedia result relabelled a smoke test; version/tag stated.</li>
+<li>Code fix: a single short passage alone no longer flags for review (2 matches, or ≥150 chars, or ≥90 matched chars covering ≥50% of Document A). Unflagged passages are still shown, labelled "not flagged". Cost: main-set recall fell to 0.57 — stated, not hidden.</li>
+<li>Accuracy page with measured numbers on a 20-pair set: precision 0.82, recall 1.00, false-positive rate 0.18 — including the two false positives, named. (Superseded by the 25-pair + 30-pair held-out numbers above.)</li>
+<li>Docs converted from raw .md links to proper HTML pages.</li>
+<li>Hero trimmed to one line + Learn more; disclaimers collapsed into details.</li>
+<li>One-click sample check: loads the demo pair and runs it.</li>
+<li>Document B now clearly optional; settings hidden under Advanced with plain-language labels and a Reset button.</li>
+<li>Author, contact (GitHub issues), and security note added.</li>
+</ul>
+<h2>v0.4.0 — 2026-10-24</h2>
+<ul><li>Opt-in internet sources (Wikipedia + Semantic Scholar) for users with no second document.</li></ul>
+<h2>v0.3.0 — 2026-10-24</h2>
+<ul><li>Upload options (paste, clipboard, drag &amp; drop, file picker, multi-file corpus), per-source cards, Copy Citation, Re-scan, redesigned mobile UI.</li></ul>
+<h2>v0.2.0 — 2026-10-24</h2>
+<ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
+<p><a href="index.html">Back to the checker</a></p>
+</main>
+<footer><p>PlagTrace v0.5.0 · MIT</p></footer></body></html>

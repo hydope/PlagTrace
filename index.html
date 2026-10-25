@@ -5,11 +5,12 @@
 <link rel="stylesheet" href="styles.css"></head>
 <body><a class="skip" href="#main">Skip to content</a>
 <header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
-<nav><a href="index.html">Compare</a> · <a href="limitations.html">Limitations</a> · <a href="COMPARISON.md">Top-10 comparison</a> · <a href="FEATURE-COMPARISON.md">What the screenshots taught us</a> · <a href="INTERNET-CHECK.md">Internet check</a> · <a href="AI-DETECTION-NOTE.md">Why no AI %</a></nav></header>
+<nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a> · <a href="security.html">Contact</a></nav></header>
 <main id="main">
 <section class="hero"><h1>Check similarity, <span>not guilt.</span></h1>
-<p>Paste or upload essays, papers, and academic drafts — even if you have no second document. PlagTrace shows, source by source, exactly which passages match, how many words matched, and what was excluded. The local check never leaves your device.</p>
-<p class="scope"><strong>Scope, stated up front:</strong> Without a second document, use the optional internet search below (Wikipedia + scholarly search). It does <em>not</em> search the whole web, Turnitin's database, or any publisher database. A "no match" means "no match in the sources fetched" — never "no match anywhere". See <a href="INTERNET-CHECK.md">Internet check</a>.</p>
+<p>Paste your draft. See, source by source, which passages match — and decide for yourself what they mean.</p>
+<p><button id="trySample" class="primary" type="button">Try a sample check — see a result in seconds</button></p>
+<details><summary>How this works, in one line — and what it cannot do</summary><p>PlagTrace compares your text against documents you supply, or against Wikipedia and scholarly sources you opt to search. It never issues a verdict, and "no match" means "no match in the sources checked" — never "no match anywhere". <a href="accuracy.html">See measured accuracy</a> · <a href="limitations.html">What it cannot detect</a> · <a href="internet-check.html">Internet check limits</a></p></details>
 <p class="banner">This is a screening aid. Only a human reviewer may decide misconduct, after giving the student a chance to respond.</p></section>
 
 <section aria-labelledby="inputs"><h2 id="inputs">1 · Add your documents</h2>
@@ -19,8 +20,9 @@
 <textarea id="docA" rows="10" placeholder="Paste your text here, or drop a file onto this card…"></textarea>
 <p class="counts"><span id="countA">0 words · 0 characters</span> <span id="fileAName"></span></p>
 <p><button id="pasteA" type="button">Paste from clipboard</button> <label class="filebtn">Upload file <input id="fileA" type="file" accept=".txt,.md,.docx,.pdf,.js,.py,.java,.c,.cpp,.ts,.html,.css"></label></p></div>
-<div class="card dropzone" id="dropB" tabindex="0"><label for="docB">Document B — compare against</label>
-<textarea id="docB" rows="10" placeholder="Paste the second document here, or drop a file onto this card…"></textarea>
+<div class="card dropzone" id="dropB" tabindex="0"><label for="docB">Document B — optional</label>
+<p class="hint">Only if you have a second document to compare against. Most people don't — skip this and use Internet sources below instead.</p>
+<textarea id="docB" rows="10" placeholder="Optional: paste a second document here, or drop a file onto this card…"></textarea>
 <p class="counts"><span id="countB">0 words · 0 characters</span> <span id="fileBName"></span></p>
 <p><button id="pasteB" type="button">Paste from clipboard</button> <label class="filebtn">Upload file <input id="fileB" type="file" accept=".txt,.md,.docx,.pdf,.js,.py,.java,.c,.cpp,.ts,.html,.css"></label></p></div>
 </div>
@@ -30,19 +32,22 @@
 <p>Untick a source to remove it from the next run, or use its Remove button. Removed sources are named in the report — removal recalculates, it does not hide history.</p></div>
 </section>
 
-<section aria-labelledby="settings"><h2 id="settings">2 · Settings (shown in every exported report)</h2>
-<div class="grid">
-<label>Mode <select id="mode"><option value="text">Prose</option><option value="code">Source code (identifier-normalised)</option></select></label>
-<label>Shingle size k <input id="k" type="number" value="5" min="3" max="12"></label>
-<label>Winnowing window <input id="win" type="number" value="4" min="1" max="12"></label>
-<label>Minimum match (words) <input id="minWords" type="number" value="8" min="3" max="50"></label>
-</div>
-<p><label><input id="exQuotes" type="checkbox" checked> Exclude quoted text</label>
-<label><input id="exCite" type="checkbox" checked> Exclude citations / bibliography section</label>
-<label><input id="exBoiler" type="checkbox" checked> Exclude boilerplate stop-shingles</label></p>
-<label for="stopList">Stop-shingles (one per line, editable)</label><textarea id="stopList" rows="4"></textarea>
+<section aria-labelledby="settings"><h2 id="settings">2 · Check</h2>
 <p><button id="run" class="primary" type="button">Check similarity locally</button> <button id="loadDemo" type="button">Load demo pair</button></p>
-<p>No AI-text detection and no "humanizer" are included, by design. See <a href="FEATURE-COMPARISON.md">what the competitor screenshots taught us — and what we refused to copy</a>.</p>
+<details><summary>Advanced settings — you don't need to touch these. Defaults are sensible, and every setting used is shown in the exported report.</summary>
+<div class="grid">
+<label>What kind of text? <select id="mode"><option value="text">Prose (essays, papers)</option><option value="code">Source code (variable names ignored)</option></select></label>
+<label>Word chunk size — smaller catches shorter matches, larger is stricter (advanced: shingle k) <input id="k" type="number" value="5" min="3" max="12"></label>
+<label>Fingerprint window — how many chunks are compared at once (advanced: Winnowing window) <input id="win" type="number" value="4" min="1" max="12"></label>
+<label>Shortest match to show, in words <input id="minWords" type="number" value="8" min="3" max="50"></label>
+</div>
+<p><label><input id="exQuotes" type="checkbox" checked> Ignore quoted text</label>
+<label><input id="exCite" type="checkbox" checked> Ignore citations / bibliography section</label>
+<label><input id="exBoiler" type="checkbox" checked> Ignore common boilerplate phrases</label></p>
+<label for="stopList">Boilerplate phrases to ignore (one per line, editable — add your institution's template phrases here)</label><textarea id="stopList" rows="4"></textarea>
+<p><button id="resetSettings" type="button">Reset to defaults</button></p>
+</details>
+<p>No AI-text detection and no "humanizer" are included, by design. <a href="ai-detection-note.html">Why no AI %</a></p>
 </section>
 <section aria-labelledby="internet"><h2 id="internet">3 · No second document? Optional internet sources</h2>
 <div class="card"><p><strong>Privacy trade-off, read before clicking:</strong> the local check sends nothing anywhere. Clicking below is the <em>only</em> step that sends anything out — the search phrases taken from Document A go to Wikipedia's public API and, best effort, Semantic Scholar. Full documents are never uploaded; only short search phrases are sent, and the comparison itself still runs in your browser.</p>
@@ -52,5 +57,5 @@
 </section>
 <section id="results" aria-live="polite"></section>
 </main>
-<footer><p>PlagTrace v0.4.0 · MIT · Local computation runs on your device; internet search is opt-in only. <a href="limitations.html">What this tool cannot detect</a></p></footer>
+<footer><p>PlagTrace v0.5.0 · MIT · By <a href="https://github.com/hydope">hydope</a> · <a href="https://github.com/hydope/PlagTrace/issues">Report a bug / false positive</a> · <a href="changelog.html">Changelog</a> · <a href="security.html">Security &amp; contact</a> · Local check sends nothing anywhere; internet search is opt-in only.</p></footer>
 <script type="module" src="src/app.js"></script></body></html>

@@ -54,21 +54,21 @@ async function run() {
   const excludedNames = new Set(corpus.filter(c => !c.included).map(c => c.name));
   const corp = compareAgainstCorpus(a, corpus, settings, excludedNames);
   const mainWords = main ? matchedWords(a, main.matches) : 0;
-  const report = { tool: 'PlagTrace', version: '0.4.0', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + Semantic Scholar only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + Semantic Scholar only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: corpus.filter(c => !c.included).map(c => c.name), reviewerDecisions: null };
+  const report = { tool: 'PlagTrace', version: '0.5.0', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + Semantic Scholar only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + Semantic Scholar only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: corpus.filter(c => !c.included).map(c => c.name), reviewerDecisions: null };
   const r = main;
   const allMatches = main ? main.matches : corp.perSource.flatMap(p => p.matches);
   const allExcluded = main ? [...main.excluded.docA, ...main.excluded.docB] : [];
   const sourceCards = corp.perSource.map((p, i) => {
     const words = matchedWords(a, p.matches);
     return `<article class="sourcecard"><h4>[${i + 1}] ${esc(p.source)}</h4>
-    <p><strong>${pct(p.coveredPercent)}</strong> of Document A covered · <strong>${words} words matched</strong> · ${p.matchCount} passage(s) · longest ${p.longestMatchChars} chars · band <span class="band-${p.evidenceBand}">${p.evidenceBand}</span> · ${p.included ? 'included' : 'removed from this run'}</p>
+    <p><strong>${pct(p.coveredPercent)}</strong> of Document A covered · <strong>${words} words matched</strong> · ${p.matchCount} passage(s) · longest ${p.longestMatchChars} chars · band <span class="band-${p.evidenceBand}">${p.evidenceBand}</span> · ${p.flaggedForReview ? '<strong>Flagged for review</strong>' : 'Shown for context — not flagged (a single short passage alone is not enough)'} · ${p.included ? 'included' : 'removed from this run'}</p>
     ${p.matches.slice(0, 3).map(m => `<p>“${esc(m.aText.slice(0, 200))}” <button type="button" class="copycite" data-src="${i}" data-a="${m.aStart}" data-b="${m.aEnd}">Copy citation note</button></p>`).join('') || '<p>No passage met the threshold for this source.</p>'}</article>`;
   }).join('');
   $('results').innerHTML = `
   <div class="banner" role="note">This is a screening aid. Only a human reviewer may decide misconduct, after giving the student a chance to respond.</div>
   <h2>Results — ${main ? 'Document A vs Document B' : 'Document A vs reference / internet sources (no Document B)'}</h2>
   ${main ? `<div class="ring"><div><div class="ringnum">${pct(r.coveredPercent)}</div><div>matched-character coverage of Document A</div></div>
-  <div><strong>${mainWords} words matched</strong> · ${r.matches.length} passage(s) · longest ${r.longestMatchChars} chars · band <span class="band-${r.evidenceBand}">${r.evidenceBand}</span></div></div>
+  <div><strong>${mainWords} words matched</strong> · ${r.matches.length} passage(s) · longest ${r.longestMatchChars} chars · band <span class="band-${r.evidenceBand}">${r.evidenceBand}</span> · ${r.flaggedForReview ? '<strong>Flagged for review</strong>' : '<strong>Not flagged for review</strong> — passages shown for context only'}</div></div>
   <p><strong>Read this before the number:</strong> ${pct(r.coveredPercent)} is the share of Document A covered by matched passages <em>under the settings above, against the documents you supplied</em>. It is not a misconduct score, not an AI-authorship percentage, and not a web-wide result. Wording like "no plagiarism found" is deliberately not used here: this tool can only say "no passage met the threshold in the supplied documents".</p>
   <dl class="scores"><div><dt>Jaccard (shingles)</dt><dd>${r.jaccard}</dd></div><div><dt>Containment A in B</dt><dd>${r.containmentAinB}</dd></div><div><dt>Containment B in A</dt><dd>${r.containmentBinA}</dd></div><div><dt>Winnowing overlap</dt><dd>${r.winnowingOverlap}</dd></div><div><dt>TF-IDF cosine</dt><dd>${r.tfidfCosine}</dd></div></dl>
   <p>${esc(r.plainLanguage)}</p>` : `<p>No Document B was supplied, so no A-vs-B score is shown. The per-source cards below — including any Wikipedia / Semantic Scholar sources fetched above — are the result. Union coverage across those sources: <strong>${pct(corp.unionCoveredPercent)}</strong>.</p>`}
@@ -109,5 +109,10 @@ $('netSearch').onclick = async () => {
 };
 $('run').onclick = run;
 $('stopList').value = DEFAULT_STOP_SHINGLES.join('\n');
+$('resetSettings').onclick = () => { $('mode').value = 'text'; $('k').value = 5; $('win').value = 4; $('minWords').value = 8; $('exQuotes').checked = true; $('exCite').checked = true; $('exBoiler').checked = true; $('stopList').value = DEFAULT_STOP_SHINGLES.join('\n'); };
+async function loadDemoAndRun() {
+  try { $('docA').value = await (await fetch('demo/sample-a.txt')).text(); $('docB').value = await (await fetch('demo/sample-b.txt')).text(); updateCounts(); await run(); document.getElementById('results').scrollIntoView({ behavior: 'smooth' }); } catch { alert('Demo files could not be loaded.'); }
+}
 $('loadDemo').onclick = async () => { try { $('docA').value = await (await fetch('demo/sample-a.txt')).text(); $('docB').value = await (await fetch('demo/sample-b.txt')).text(); updateCounts(); } catch { alert('Demo files could not be loaded.'); } };
+$('trySample').onclick = loadDemoAndRun;
 updateCounts(); renderCorpus();

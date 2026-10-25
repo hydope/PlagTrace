@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How PlagTrace compares — PlagTrace</title>
+<link rel="stylesheet" href="styles.css"></head>
+<body><header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
+<nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
+<main>
+<h1>How PlagTrace compares</h1>
+<p>PlagTrace is not trying to beat Turnitin, Scribbr, or GPTZero at their own game — web-wide database size. It wins on the things that protect a student from a wrong, unappealable output, and it loses on database size. Both are stated here.</p>
+<h2>Where PlagTrace is better (checkable in this repo)</h2>
+<ul>
+<li><strong>Privacy:</strong> local check uploads nothing; internet check sends only short search phrases, opt-in.</li>
+<li><strong>Transparency:</strong> every figure has a formula, settings, and visible passages. No verdict, no "risk: High" label, no AI %.</li>
+<li><strong>Safety workflow:</strong> per-match reviewer decisions, an author-response step, excluded passages listed, removed sources named in the report.</li>
+<li><strong>Cost:</strong> free, no account, no per-check price. Code is open and inspectable.</li>
+<li><strong>Upload options:</strong> paste, clipboard, drag &amp; drop, file picker, multi-file corpus — .txt, .md, .docx, .pdf (text layer), code.</li>
+</ul>
+<h2>Where PlagTrace loses (stated, not hidden)</h2>
+<ul>
+<li><strong>Database:</strong> no web, academic, or publisher database. On web-wide recall, Turnitin-style tools win by construction.</li>
+<li><strong>Paraphrase and translation:</strong> heavy rewording and translation are blind spots.</li>
+<li><strong>Grammar and style:</strong> not included. PlagTrace does similarity only.</li>
+</ul>
+<h2>Open-source tools it builds on</h2>
+<p>Methods, reimplemented from published descriptions (not copied code): Winnowing (Schleimer et al., SIGMOD 2003), JPlag's token-based code comparison, Dolos's identifier masking, and copydetect's Winnowing + HTML-report idea. Full table with licenses and sources is in the repo's COMPARISON.md.</p>
+<p><a href="index.html">Back to the checker</a></p>
+</main>
+<footer><p>PlagTrace v0.5.0 · MIT · <a href="changelog.html">Changelog</a> · <a href="security.html">Security</a></p></footer></body></html>

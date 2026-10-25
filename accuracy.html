@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How accurate is PlagTrace? — PlagTrace</title>
+<link rel="stylesheet" href="styles.css"></head>
+<body><header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
+<nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
+<main>
+<h1>How accurate is it?</h1>
+<p><strong>About 1 in 5 flags was innocent in our first test, and paraphrase is not detected at all.</strong> Those are the two sentences that matter most on this page. Everything below is the evidence for them — including the intervals that show how uncertain the numbers still are.</p>
+<p>Version: <strong>v0.5.0</strong> (git tag v0.5.0, applied to the commit that published this page). Run date: 2026-10-24. Reproduce with <code>node tests/metrics.mjs</code> and <code>node tests/heldout.mjs</code> in the repo.</p>
+<h2>Main set — 25 pairs, counted by pair (not by passage)</h2>
+<p>Precision and recall below count <em>pairs</em>: a pair is flagged if the tool's flagged-for-review rule fires, and a pair is a true copy if it was written as one. Passages are what the UI shows; pairs are what the table counts. Mixing those units was an earlier error, fixed here.</p>
+<table>
+<tr><th>Measure</th><th>Point estimate</th><th>95% Wilson interval</th></tr>
+<tr><td>Pairs</td><td>25 (14 should-flag, 11 should-not-flag)</td><td>—</td></tr>
+<tr><td>True positives / false positives / false negatives / true negatives</td><td>8 / 0 / 6 / 11</td><td>—</td></tr>
+<tr><td><strong>Precision</strong></td><td><strong>1.00</strong></td><td><strong>0.68 – 1.00</strong></td></tr>
+<tr><td><strong>Recall</strong></td><td><strong>0.57</strong></td><td><strong>0.33 – 0.79</strong></td></tr>
+<tr><td><strong>False-positive rate</strong></td><td><strong>0.00</strong></td><td><strong>0.00 – 0.26</strong></td></tr>
+</table>
+<p>Read the intervals, not just the point estimates: recall of 8/14 could plausibly be as low as 33%. "1.00" precision on 8 flags is not a claim that the tool never false-flags — the interval goes down to 0.68, and the held-out set below shows false flags do happen.</p>
+<h2>Detection by type — main set</h2>
+<table>
+<tr><th>Type</th><th>Flagged / should-flag</th><th>What it means</th></tr>
+<tr><td>Verbatim</td><td>3 / 3</td><td>Exact copies are found.</td></tr>
+<tr><td>Light edit (word swaps, renamed code)</td><td>4 / 6</td><td>Mostly found; two short shared passages missed after the flagging fix.</td></tr>
+<tr><td>Reordered sentences</td><td>1 / 2</td><td>Reordering is partly missed when each sentence is short.</td></tr>
+<tr><td><strong>True paraphrase (rewritten, no long verbatim passage)</strong></td><td><strong>0 / 3</strong></td><td><strong>Not detected, by design — this is a verbatim engine. Any recall figure that hides this row is misleading.</strong></td></tr>
+<tr><td>Negative (unrelated, quoted, cited, boilerplate, template, common knowledge)</td><td>0 / 11 flagged</td><td>No false flags in this set, after the fix below.</td></tr>
+</table>
+<h2>The flagging fix — and what it cost</h2>
+<p>Before the fix, the first 20-pair run had precision 0.82 and a false-positive rate of 0.18: a common-knowledge sentence and a template sentence were flagged. The fix, in <code>src/sim.js</code>: a single short passage alone is no longer enough to flag. A pair is flagged only if there are at least 2 distinct matches, or one match of at least 150 characters, or at least 90 matched characters covering at least 50% of Document A. In the UI, unflagged passages are still shown, labelled "Shown for context — not flagged".</p>
+<p>The cost is visible above: recall fell from 1.00 to 0.57, because short shared sentences that used to count as flags no longer do. That trade — fewer accusations, more missed short copies — is deliberate for a student-facing tool, and it is stated here rather than hidden by keeping the old rule.</p>
+<h2>Held-out set — 30 pairs, written after the fix, not used to tune it</h2>
+<p>The main set above is no longer held-out: the flagging rule was changed after its first run. So a second set was written afterwards, on different topics (cooking, sport, astronomy, medicine, law, music, gardening, aviation, geology, film), and the rule was <em>not</em> changed again in response to its results.</p>
+<table>
+<tr><th>Measure</th><th>Point estimate</th><th>95% Wilson interval</th></tr>
+<tr><td>Pairs</td><td>30 (15 should-flag, 15 should-not-flag)</td><td>—</td></tr>
+<tr><td>TP / FP / FN / TN</td><td>10 / 2 / 5 / 13</td><td>—</td></tr>
+<tr><td><strong>Precision</strong></td><td><strong>0.83</strong></td><td><strong>0.55 – 0.95</strong></td></tr>
+<tr><td><strong>Recall</strong></td><td><strong>0.67</strong></td><td><strong>0.42 – 0.85</strong></td></tr>
+<tr><td><strong>False-positive rate</strong></td><td><strong>0.13</strong></td><td><strong>0.04 – 0.38</strong></td></tr>
+</table>
+<p>Held-out by type: verbatim 5/5, light edit 5/5, reordered 0/2, paraphrase 0/3, negative 2/15 flagged (a template sentence of 99 characters and a common-knowledge sentence of 92 characters — both just over the 90-character floor, which shows the floor is not magic). Combined across both sets (55 pairs): precision 0.90 (0.70–0.97), recall 0.62 (0.44–0.77), false-positive rate 0.08 (0.02–0.24).</p>
+<h2>Base rate — why no verdict, in numbers</h2>
+<p>In the test sets, 45–56% of pairs are true copies. In a real class, maybe 2% are. Using the held-out numbers (recall 0.67, false-positive rate 0.13) at 2% prevalence: out of 1,000 students, about 20 true copies and 980 innocent papers. The tool would flag about 13 of the true copies and about 131 innocent papers — <strong>about 91% of flags would be innocent</strong>. That is the strongest argument for the no-verdict stance on this site: at real base rates, a flag is mostly a prompt to look, never a judgement.</p>
+<h2>Wikipedia check — a smoke test, not a measurement</h2>
+<p>A verbatim paste of the first 600 characters of the Wikipedia Photosynthesis article returned 98.7% coverage, 1 match, 592 characters, band high. That is the easiest possible case — a verbatim paste of a fetched article — so it is called a smoke test here, not "measured live" accuracy. A paraphrased version of the same idea returned 0 matches.</p>
+<h2>What is NOT claimed</h2>
+<ul>
+<li><strong>No PAN benchmark.</strong> PAN was not downloaded or run. No PAN numbers are claimed.</li>
+<li><strong>No web-wide accuracy.</strong> These sets compare supplied documents only. They say nothing about Chegg, CourseHero, or publisher databases.</li>
+<li><strong>No AI-detection accuracy.</strong> PlagTrace contains no AI-text detection. See <a href="ai-detection-note.html">Why no AI %</a>.</li>
+<li><strong>Tuning disclosure:</strong> the flagging rule was changed after the first set's results (see above). The held-out set is the check against that tuning, and its worse false-positive rate (0.13, not 0.00) is published, not replaced.</li>
+</ul>
+<p><a href="index.html">Back to the checker</a></p>
+</main>
+<footer><p>PlagTrace v0.5.0 · MIT · <a href="changelog.html">Changelog</a> · <a href="security.html">Security</a></p></footer></body></html>

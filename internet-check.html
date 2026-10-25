@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Internet check — PlagTrace</title>
+<link rel="stylesheet" href="styles.css"></head>
+<body><header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
+<nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
+<main>
+<h1>Internet check</h1>
+<p>If you have no second document, PlagTrace can search the internet for you — with limits you should know before you rely on it.</p>
+<h2>How it works</h2>
+<ol>
+<li>Paste your text, click <strong>Search internet sources</strong>.</li>
+<li>PlagTrace takes up to 3 distinctive sentences, truncates each to 12 words, and sends <strong>only those phrases</strong> to Wikipedia's public API and, best effort, Semantic Scholar.</li>
+<li>Up to 6 Wikipedia articles are fetched and compared locally, in your browser, with a link to each source.</li>
+<li>The exact phrases sent are shown on screen. Full documents are never uploaded.</li>
+</ol>
+<h2>What it does not search</h2>
+<p>Not the whole web. Not Turnitin's database. Not publisher paywalled databases. Not Chegg or CourseHero — those are paywalled, and no free open tool can search them. If a match lives only there, PlagTrace will not find it.</p>
+<p><strong>Have a specific page in mind?</strong> If you can open a page (a blog, a CourseHero page you have access to, a classmate's paper), copy its text and paste it as Document B or as a reference source. That is how you check a specific source PlagTrace cannot fetch itself.</p>
+<h2>Rate limits, reported not hidden</h2>
+<p>Semantic Scholar returned HTTP 429 from a shared network in testing (no API key), OpenAlex did the same, and arXiv returned HTTP 503. Those failures are shown in the tool — they are never read as "no match". Wikipedia worked with no key in the same test.</p>
+<h2>What "no match" means here</h2>
+<p>"No match in the Wikipedia articles fetched" — never "no match anywhere".</p>
+<p><a href="index.html">Back to the checker</a></p>
+</main>
+<footer><p>PlagTrace v0.5.0 · MIT · <a href="changelog.html">Changelog</a> · <a href="security.html">Security</a></p></footer></body></html>

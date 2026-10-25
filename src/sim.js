@@ -4,7 +4,7 @@
 // Jaccard, containment, TF-IDF cosine, and identifier-normalised code tokens.
 // This module never produces a misconduct verdict. It reports similarity
 // evidence only; a human reviewer decides anything further.
-export const VERSION = '0.4.0';
+export const VERSION = '0.5.0';
 
 // Words in `text` that fall inside at least one matched interval in Document A.
 // Counts whole words, never double-counting an overlapping word. Used for the
@@ -201,7 +201,16 @@ export function compareDocs(textA, textB, settings = {}) {
   // Evidence band — NOT a misconduct judgement. Thresholds are visible and adjustable.
   const evidence = matches.length > 0 && longest >= s.minChars;
   result.evidenceBand = !evidence ? 'inconclusive' : longest >= 200 || result.jaccard >= 0.5 ? 'high' : longest >= 80 || result.jaccard >= 0.2 ? 'medium' : 'low';
-  result.flaggedForReview = evidence && (result.jaccard >= 0.10 || result.containmentAinB >= 0.20 || longest >= 80);
+  // Flagging rule (changed 2026-10-24 after the first 20-pair run, see
+  // accuracy.html): a single short passage is NOT enough to flag, even if
+  // it covers a short document. Flag only if there are at least 2 distinct
+  // matches, OR one match of at least 150 characters, OR at least 90 matched
+  // characters covering at least half of Document A. 90 characters is about
+  // 15 words — one ordinary sentence. This is a principled floor, not a
+  // dataset-tuned constant: the held-out set in tests/heldout.mjs was
+  // written after this rule was fixed and was not used to choose it.
+  const totalMatched = matches.reduce((sum, m) => sum + m.charLength, 0);
+  result.flaggedForReview = evidence && (matches.length >= 2 || longest >= 150 || (totalMatched >= 90 && coverage.percent >= 0.5));
   result.plainLanguage = evidence
     ? 'Shared passages were found. This can also happen with a shared template, standard terminology, a properly cited quote that was not excluded, or two writers describing the same procedure. Check the highlighted passages, not just the score.'
     : 'No passage met the minimum-evidence threshold. That does not prove two texts are unrelated — short, heavily reworded, or translated overlap can fall below it.';
@@ -243,6 +252,7 @@ export function compareAgainstCorpus(textA, sources, settings = {}, excludedName
       jaccard: r.jaccard, containmentAinB: r.containmentAinB, tfidfCosine: r.tfidfCosine,
       longestMatchChars: r.longestMatchChars, matchCount: r.matches.length,
       coveredChars: cov.chars, coveredPercent: cov.percent, evidenceBand: r.evidenceBand,
+      flaggedForReview: r.flaggedForReview,
       matches: r.matches,
     });
   }

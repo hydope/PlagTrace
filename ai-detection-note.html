@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why no AI % — PlagTrace</title>
+<link rel="stylesheet" href="styles.css"></head>
+<body><header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
+<nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
+<main>
+<h1>Why there is no "AI %" here</h1>
+<p>PlagTrace deliberately contains no AI-text detection. That is not a missing feature — it is a safety decision, and the evidence for it is:</p>
+<ul>
+<li><strong>Liang et al., <em>Patterns</em> (2023):</strong> 7 detectors tested on 91 TOEFL essays by non-native English writers gave a <strong>61.3% average false-positive rate</strong>, versus near-zero on native-speaker essays. The detectors were measuring vocabulary simplicity, not authorship.</li>
+<li><strong>Turnitin's own figures:</strong> under 1% false positives only for documents with over 20% AI text, and it likely misses about 15% of AI text to keep false positives low.</li>
+<li><strong>Independent benchmarks disagree wildly</strong> with vendor claims, and detectors disagree with each other on identical human text.</li>
+<li><strong>OpenAI discontinued its own AI Text Classifier</strong> in July 2023 for low accuracy.</li>
+</ul>
+<p>An AI % that is wrong about a non-native speaker's essay can end a student's career. A similarity percentage, by contrast, is auditable: you can see the matched passage, its source, and its offsets, and a human can decide what it means.</p>
+<p>What PlagTrace shows instead: <strong>similarity coverage % per source</strong> — matched characters ÷ Document A characters, under stated settings. Every number on a result page can be traced to a visible passage.</p>
+<p><a href="index.html">Back to the checker</a></p>
+</main>
+<footer><p>PlagTrace v0.5.0 · MIT · <a href="changelog.html">Changelog</a> · <a href="security.html">Security</a></p></footer></body></html>
