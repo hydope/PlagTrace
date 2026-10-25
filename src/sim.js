@@ -248,7 +248,7 @@ export function compareAgainstCorpus(textA, sources, settings = {}, excludedName
     const r = compareDocs(textA, src.text, settings);
     const cov = coveredChars(r.matches, textA.length);
     perSource.push({
-      source: src.name, included: !excludedNames.has(src.name),
+      source: src.name, url: src.url || '', included: !excludedNames.has(src.name),
       jaccard: r.jaccard, containmentAinB: r.containmentAinB, tfidfCosine: r.tfidfCosine,
       longestMatchChars: r.longestMatchChars, matchCount: r.matches.length,
       coveredChars: cov.chars, coveredPercent: cov.percent, evidenceBand: r.evidenceBand,

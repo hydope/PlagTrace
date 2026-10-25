@@ -27,7 +27,9 @@ function renderCorpus() {
   $('corpusList').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const nm = corpus[+b.dataset.rm].name; if (!removedNames.includes(nm)) removedNames.push(nm); corpus.splice(+b.dataset.rm, 1); renderCorpus(); markStale(); });
   $('corpusList').querySelectorAll('[data-i]').forEach(b => b.onchange = () => { corpus[+b.dataset.i].included = b.checked; markStale(); });
 }
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 async function loadFile(f, target, nameEl) {
+  if (f.size > MAX_FILE_BYTES) { alert(`${f.name} is over the 10 MB file limit. Split it into smaller files, or paste the text instead. Nothing was uploaded.`); return; }
   try { const t = await extractText(f); if (target) $(target).value = t; if (nameEl) $(nameEl).textContent = `Loaded: ${f.name}`; updateCounts(); markStale(); }
   catch (e) { alert(f.name + ': ' + e.message); }
 }
@@ -40,7 +42,7 @@ function wireDrop(zoneId, onFiles) {
 }
 wireDrop('dropA', fs => fs[0] && loadFile(fs[0], 'docA', 'fileAName'));
 wireDrop('dropB', fs => fs[0] && loadFile(fs[0], 'docB', 'fileBName'));
-wireDrop('dropCorpus', async fs => { for (const f of fs) { try { corpus.push({ name: f.name, text: await extractText(f), included: true }); } catch (e) { alert(f.name + ': ' + e.message); } } renderCorpus(); });
+wireDrop('dropCorpus', async fs => { for (const f of fs) { if (f.size > MAX_FILE_BYTES) { alert(f.name + ' is over the 10 MB file limit.'); continue; } try { corpus.push({ name: f.name, text: await extractText(f), included: true }); } catch (e) { alert(f.name + ': ' + e.message); } } renderCorpus(); });
 async function pasteInto(target) {
   try { const t = await navigator.clipboard.readText(); if (t) { $(target).value = t; updateCounts(); markStale(); } else alert('Clipboard is empty or permission was denied. Paste with Ctrl+V / Cmd+V instead.'); }
   catch { alert('Clipboard access was denied by the browser. Paste with Ctrl+V / Cmd+V instead.'); }
@@ -49,7 +51,7 @@ $('pasteA').onclick = () => pasteInto('docA');
 $('pasteB').onclick = () => pasteInto('docB');
 $('fileA').onchange = e => e.target.files[0] && loadFile(e.target.files[0], 'docA', 'fileAName');
 $('fileB').onchange = e => e.target.files[0] && loadFile(e.target.files[0], 'docB', 'fileBName');
-$('corpus').onchange = async e => { for (const f of e.target.files) { try { corpus.push({ name: f.name, text: await extractText(f), included: true }); } catch (err) { alert(f.name + ': ' + err.message); } } renderCorpus(); markStale(); };
+$('corpus').onchange = async e => { for (const f of e.target.files) { if (f.size > MAX_FILE_BYTES) { alert(f.name + ' is over the 10 MB file limit.'); continue; } try { corpus.push({ name: f.name, text: await extractText(f), included: true }); } catch (err) { alert(f.name + ': ' + err.message); } } renderCorpus(); markStale(); };
 async function run() {
   captureDecisions();
   const a = $('docA').value, b = $('docB').value;
@@ -63,19 +65,31 @@ async function run() {
   const excludedNames = new Set(corpus.filter(c => !c.included).map(c => c.name));
   const corp = compareAgainstCorpus(a, corpus, settings, excludedNames);
   const mainWords = main ? matchedWords(a, main.matches) : 0;
-  const report = { tool: 'PlagTrace', version: '0.6.2', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + Semantic Scholar only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + Semantic Scholar only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
+  const report = { tool: 'PlagTrace', version: '0.6.3', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + Semantic Scholar only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + Semantic Scholar only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
   const r = main;
   const allMatches = main ? main.matches : corp.perSource.flatMap(p => p.matches);
   const allExcluded = main ? [...main.excluded.docA, ...main.excluded.docB] : [];
   const sourceCards = corp.perSource.map((p, i) => {
     const words = matchedWords(a, p.matches);
-    return `<article class="sourcecard"><h4>[${i + 1}] ${esc(p.source)}</h4>
-    <p><strong>${pct(p.coveredPercent)}</strong> of Document A covered · <strong>${words} words matched</strong> · ${p.matchCount} passage(s) · longest ${p.longestMatchChars} chars · band <span class="band-${p.evidenceBand}">${p.evidenceBand}</span> · ${p.flaggedForReview ? '<strong>Flagged for review</strong>' : 'Shown for context — not flagged (a single short passage alone is not enough)'} · ${p.included ? 'included' : 'removed from this run'}</p>
-    ${p.matches.slice(0, 3).map(m => `<p>“${esc(m.aText.slice(0, 200))}” <button type="button" class="copycite" data-src="${i}" data-a="${m.aStart}" data-b="${m.aEnd}">Copy citation note</button></p>`).join('') || '<p>No passage met the threshold for this source.</p>'}</article>`;
+    const contextHtml = p.matches.slice(0, 3).map(m => {
+      const cs = Math.max(0, m.aStart - 60), ce = Math.min(a.length, m.aEnd + 60);
+      const ctx = a.slice(cs, ce);
+      return `<p class="context">…${highlight(ctx, [{ start: m.aStart - cs, end: m.aEnd - cs }])}… <button type="button" class="copycite" data-src="${i}" data-a="${m.aStart}" data-b="${m.aEnd}">Copy citation</button></p>`;
+    }).join('');
+    return `<article class="sourcecard"><h4>[${i + 1}] ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.source)}</a>` : esc(p.source)}</h4>
+    <p><strong>${words} words matched</strong> · <strong>${pct(p.coveredPercent)}</strong> of Document A covered · ${p.matchCount} passage(s) · longest ${p.longestMatchChars} chars · band <span class="band-${p.evidenceBand}">${p.evidenceBand}</span> · ${p.flaggedForReview ? '<strong>Flagged for review</strong>' : 'Shown for context — not flagged (a single short passage alone is not enough)'} · ${p.included ? 'included' : 'removed from this run'}</p>
+    ${contextHtml || '<p>No passage met the threshold for this source.</p>'}</article>`;
   }).join('');
+  const totalWordsMatched = corp.perSource.filter(p => p.included).reduce((s, p) => s + matchedWords(a, p.matches), 0);
+  const flaggedSources = corp.perSource.filter(p => p.included && p.flaggedForReview).length;
+  const donutPct = main ? Math.round(r.coveredPercent * 100) : Math.round(corp.unionCoveredPercent * 100);
+  const donut = `<svg class="donut" viewBox="0 0 120 120" role="img" aria-label="${donutPct}% of Document A covered by matched passages in the sources checked"><circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" stroke-width="14"/><circle cx="60" cy="60" r="52" fill="none" stroke="#b42318" stroke-width="14" stroke-dasharray="${(donutPct / 100 * 326.7).toFixed(1)} 326.7" transform="rotate(-90 60 60)"/><text x="60" y="58" text-anchor="middle" font-size="22" font-weight="800">${donutPct}%</text><text x="60" y="76" text-anchor="middle" font-size="9">covered</text></svg>`;
   $('results').innerHTML = `
   <div class="banner" role="note">This is a screening aid. Only a human reviewer may decide misconduct, after giving the student a chance to respond.</div>
   <h2>Results — ${main ? 'Document A vs Document B' : 'Document A vs reference / internet sources (no Document B)'}</h2>
+  <div class="summarybar">${donut}<div><p><strong>${main ? mainWords : totalWordsMatched} words matched</strong> · ${corp.perSource.filter(p => p.included).length} source(s) checked · ${flaggedSources} source(s) flagged for review · ${allMatches.length} passage(s) total</p>
+  <ul class="checklist"><li>${main ? '✓' : '—'} Document B compared ${main ? '' : '(none supplied)'}</li><li>✓ ${corp.perSource.filter(p => p.included).length} reference / internet source(s) checked, ${report.removedSources.length} removed and named below</li><li>${allExcluded.length ? '✓' : '—'} ${allExcluded.length} quoted / cited / boilerplate passage(s) excluded from scoring</li><li>${allMatches.length ? '○' : '—'} Reviewer decisions: ${allMatches.length ? 'pending — record one per match below' : 'none needed, no matches'}</li><li>✗ AI-authorship %: deliberately not shown (see Why no AI %)</li></ul>
+  <p class="scope-note">Scope: this % covers only the sources listed below, under the settings above. It is not a web-wide result and not a Turnitin result.</p></div></div>
   ${main ? `<div class="ring"><div><div class="ringnum">${pct(r.coveredPercent)}</div><div>matched-character coverage of Document A</div></div>
   <div><strong>${mainWords} words matched</strong> · ${r.matches.length} passage(s) · longest ${r.longestMatchChars} chars · band <span class="band-${r.evidenceBand}">${r.evidenceBand}</span> · ${r.flaggedForReview ? '<strong>Flagged for review</strong>' : '<strong>Not flagged for review</strong> — passages shown for context only'}</div></div>
   <p><strong>Read this before the number:</strong> ${pct(r.coveredPercent)} is the share of Document A covered by matched passages <em>under the settings above, against the documents you supplied</em>. It is not a misconduct score, not an AI-authorship percentage, and not a web-wide result. Wording like "no plagiarism found" is deliberately not used here: this tool can only say "no passage met the threshold in the supplied documents".</p>
@@ -93,7 +107,7 @@ async function run() {
   <ul><li><strong>Verbatim words:</strong> quotation marks + citation.</li><li><strong>Someone else's idea in your words:</strong> genuine rewrite + still cite the source.</li><li><strong>Your own earlier work:</strong> cite it, or get your institution's reuse rule in writing.</li><li><strong>Do not</strong> use a paraphraser or "humanizer" to make a match disappear. That hides evidence without adding attribution.</li></ul>
   <div class="side"><section><h3>Document A (highlighted)</h3><p>${highlight(a, allMatches.map(m => ({ start: m.aStart, end: m.aEnd })))}</p></section>
   ${main ? `<section><h3>Document B (highlighted)</h3><p>${highlight(b, main.matches.map(m => ({ start: m.bStart, end: m.bEnd })))}</p></section>` : ""}</div>
-  <p><button id="rescan" type="button">Re-scan with current settings</button> <button id="dlJson" type="button">Download JSON report</button> <button id="dlPrint" type="button">Print / save as PDF</button></p>`;
+  <p class="actionbar"><button id="rescan" type="button">Re-scan with current settings</button> <button id="dlJson" type="button">Download JSON report</button> <button id="dlCsv" type="button">Download CSV (sources)</button> <button id="dlPrint" type="button">Print / save as PDF</button></p>`;
   let kept = 0; document.querySelectorAll('.review').forEach(s => { if (savedDecisions[s.dataset.key]) { s.value = savedDecisions[s.dataset.key]; kept++; } });
   if (kept) $('results').insertAdjacentHTML('afterbegin', `<p class="keptnote">${kept} reviewer decision(s) kept from the previous run for matches that still exist.</p>`);
   runBtn.disabled = false; runBtn.textContent = oldRunText;
@@ -106,6 +120,7 @@ async function run() {
   });
   const collect = () => [...document.querySelectorAll('.review')].map(s => s.value);
   $('dlJson').onclick = () => { report.reviewerDecisions = collect(); report.reviewerDecisionsComplete = report.reviewerDecisions.length > 0 && report.reviewerDecisions.every(v => v !== 'unreviewed'); report.reviewerDecisionsNote = report.reviewerDecisions.length === 0 ? 'No matches to review' : (report.reviewerDecisionsComplete ? 'All matches reviewed' : 'Some matches still unreviewed'); const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }); const aEl = document.createElement('a'); aEl.href = URL.createObjectURL(blob); aEl.download = 'plagtrace-report.json'; aEl.click(); };
+  $('dlCsv').onclick = () => { const escCsv = v => `"${String(v).replace(/"/g, '""')}"`; const rows = [['source', 'url', 'included', 'covered_percent', 'words_matched', 'passages', 'longest_chars', 'band', 'flagged_for_review']]; for (const p of corp.perSource) rows.push([p.source, p.url || '', p.included, pct(p.coveredPercent), matchedWords(a, p.matches), p.matchCount, p.longestMatchChars, p.evidenceBand, p.flaggedForReview]); const blob = new Blob([rows.map(r => r.map(escCsv).join(',')).join('\n')], { type: 'text/csv' }); const aEl = document.createElement('a'); aEl.href = URL.createObjectURL(blob); aEl.download = 'plagtrace-sources.csv'; aEl.click(); };
   $('dlPrint').onclick = () => window.print();
 }
 $('netSearch').onclick = async () => {
@@ -143,4 +158,10 @@ async function loadDemoAndRun() {
 }
 $('loadDemo').onclick = async () => { try { $('docA').value = await (await fetch('demo/sample-a.txt')).text(); $('docB').value = await (await fetch('demo/sample-b.txt')).text(); updateCounts(); } catch { alert('Demo files could not be loaded.'); } };
 $('trySample').onclick = loadDemoAndRun;
+const darkBtn = $('darkToggle');
+if (darkBtn) {
+  if (localStorage.getItem('plagtrace-theme') === 'dark') document.body.classList.add('dark');
+  darkBtn.textContent = document.body.classList.contains('dark') ? 'Light mode' : 'Dark mode';
+  darkBtn.onclick = () => { const dark = document.body.classList.toggle('dark'); localStorage.setItem('plagtrace-theme', dark ? 'dark' : 'light'); darkBtn.textContent = dark ? 'Light mode' : 'Dark mode'; };
+}
 updateCounts(); renderCorpus();

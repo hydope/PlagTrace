@@ -6,6 +6,15 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
+<h2>v0.6.3 — 2026-10-25 (competitor-inspired features, engine and accuracy numbers unchanged)</h2>
+<ul>
+<li>Results summary bar, inspired by GPTZero's top line but with scope attached: coverage donut (not a verdict), words matched, sources checked, sources flagged, passages total, plus a checklist (Document B, sources checked, exclusions, reviewer decisions pending, and "AI %: deliberately not shown").</li>
+<li>Per-source cards v2, inspired by GPTZero/Scribbr cards: numbered [1], [2], source link, words matched first, coverage, band, flagged/context, and a matched passage shown with surrounding context highlighted, plus a prominent Copy citation button.</li>
+<li>Sticky action bar (Re-scan, JSON, CSV, Print) so the actions stay reachable on long results, like GPTZero's Re-scan button.</li>
+<li>CSV export of per-source results (source, URL, included, coverage, words, passages, longest, band, flagged) for reviewers who live in spreadsheets.</li>
+<li>Dark mode with a persistent preference, and a 10 MB per-file limit with a clear error instead of a freeze.</li>
+<li>Deliberately NOT copied from these screenshots: AI % (T-Checker 86% vs Scribbr 78% on the same paper proves it is inconsistent), "Go to Humanizer" (evasion), "No plagiarism found" (Grammarly scanned only the first 1,500 words), "Plagiarism risk: High" (Scribbr hides its % behind a blur and a $19.95 paywall), and grammar checking (a different product; a fake grammar count would be dishonest).</li>
+</ul>
 <h2>v0.6.2 — 2026-10-25 (internet search fix + safety warning, engine and accuracy numbers unchanged)</h2>
 <ul>
 <li>Fixed internet search phrases for academic papers. Old scoring picked headings, title pages, and generic filler ("Recommendations for Business Leaders…", author/university lines) because it scored by long words and merged headings with the next paragraph. New scoring: references section cut, headings/title lines dropped, sentences scored by distinctive words (words appearing in few other sentences) with a bonus for cited sentences. On a real stakeholder-theory paper, phrases changed from title/generic filler to a Donaldson &amp; Preston (1995) stakeholder sentence and a digital-ESG ASEAN sentence — and Wikipedia now returns the actual "Stakeholder theory" article first, instead of six unrelated articles.</li>
@@ -49,4 +58,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.6.2 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.6.3 · MIT</p></footer></body></html>
