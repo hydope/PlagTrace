@@ -1,1 +1,1 @@
-{"description":"Privacy-first, client-only similarity screening for GitHub Pages.","engines":{"node":">=18"},"name":"plagtrace","private":true,"scripts":{"metrics":"node tests/metrics.mjs","test":"node --test tests/sim.test.mjs"},"type":"module","version":"0.7.0"}
+{"description":"Privacy-first, client-only similarity screening for GitHub Pages.","engines":{"node":">=18"},"name":"plagtrace","private":true,"scripts":{"metrics":"node tests/metrics.mjs","test":"node --test tests/sim.test.mjs"},"type":"module","version":"0.7.1"}

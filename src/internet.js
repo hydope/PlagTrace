@@ -182,3 +182,43 @@ export async function findOpenCopies(text, email) {
   }
   return out;
 }
+
+// Check cited sources by DOI: for each DOI in the document, fetch its
+// abstract via OpenAlex (works endpoint, CORS *, verified 12/12 for the
+// real paper on 2026-10-25) with a DOAJ fallback. Returns sources to
+// compare locally PLUS a per-DOI status list, so a failed fetch is never
+// reported as "no match" and never as 0%. Abstracts only — full text is
+// behind publisher paywalls / CORS blocks in a browser, and that limit is
+// stated per source, not hidden.
+export async function fetchCitedSources(text) {
+  const dois = [...new Set([...text.matchAll(/10\.\d{4,9}\/[-._;()/:A-Z0-9]+/gi)].map(m => m[0].replace(/[.,;]+$/, '')))].slice(0, 30);
+  const sources = [], statuses = [];
+  for (const doi of dois) {
+    let got = false;
+    try {
+      const r = await fetch(`https://api.openalex.org/works/https://doi.org/${doi}`);
+      if (r.ok) {
+        const j = await r.json();
+        if (j.abstract_inverted_index) {
+          sources.push({ name: `Cited: ${j.title || doi}`, text: `${j.title || ''}. ${invertAbstract(j.abstract_inverted_index)}`, url: `https://doi.org/${doi}`, included: true });
+          statuses.push({ doi, title: j.title || '', status: 'Abstract fetched via OpenAlex' }); got = true;
+        }
+      } else statuses.push({ doi, title: '', status: `OpenAlex HTTP ${r.status}` });
+    } catch (e) { statuses.push({ doi, title: '', status: `OpenAlex fetch failed: ${e.message}` }); }
+    if (got) continue;
+    try {
+      const r = await fetch(`https://doaj.org/api/search/articles/doi:${encodeURIComponent(doi)}`);
+      if (r.ok) {
+        const j = await r.json();
+        const hit = (j.results || []).find(x => x.bibjson?.abstract);
+        if (hit) {
+          const fulltext = (hit.bibjson.link || []).find(l => l.type === 'fulltext')?.url || '';
+          sources.push({ name: `Cited: ${hit.bibjson.title || doi}`, text: `${hit.bibjson.title || ''}. ${hit.bibjson.abstract}`, url: fulltext || `https://doi.org/${doi}`, included: true });
+          statuses.push({ doi, title: hit.bibjson.title || '', status: 'Abstract fetched via DOAJ' }); got = true;
+        }
+      }
+    } catch (e) { /* DOAJ fallback failure is already covered by the OpenAlex status */ }
+    if (!got) statuses.push({ doi, title: '', status: 'No abstract fetched — full text not accessible from a browser (publisher / CORS / paywall). Upload the full text to check it.' });
+  }
+  return { sources, statuses, dois };
+}

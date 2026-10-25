@@ -1,6 +1,6 @@
 import { compareDocs, compareAgainstCorpus, matchedWords, DEFAULT_STOP_SHINGLES, excludedSpans } from './sim.js';
 import { extractText } from './files.js';
-import { fetchInternetSources, extractReferences, findOpenCopies } from './internet.js';
+import { fetchInternetSources, extractReferences, findOpenCopies, fetchCitedSources } from './internet.js';
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pct = x => (x * 100).toFixed(1) + '%';
@@ -65,7 +65,7 @@ async function run() {
   const excludedNames = new Set(corpus.filter(c => !c.included).map(c => c.name));
   const corp = compareAgainstCorpus(a, corpus, settings, excludedNames);
   const mainWords = main ? matchedWords(a, main.matches) : 0;
-  const report = { tool: 'PlagTrace', version: '0.7.0', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
+  const report = { tool: 'PlagTrace', version: '0.7.1', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
   const r = main;
   const allMatches = main ? main.matches : corp.perSource.flatMap(p => p.matches);
   const allExcluded = main ? [...main.excluded.docA, ...main.excluded.docB] : excludedSpans(a, settings);
@@ -143,6 +143,18 @@ $('netSearch').onclick = async () => {
   } catch (e) { $('netStatus').innerHTML = `<p role="alert">Internet search failed: ${esc(e.message)}. Local check still works — this failure is not a "no match".</p>`; }
   $('netSearch').disabled = false; $('netSearch').textContent = 'Search internet sources';
 }
+$('citeSearch').onclick = async () => {
+  const a = $('docA').value;
+  if (a.trim().length < 40) { $('citeStatus').innerHTML = '<p role="alert">Paste Document A first — cited sources are read from its References / DOIs.</p>'; return; }
+  $('citeSearch').disabled = true; $('citeSearch').textContent = 'Fetching cited abstracts…';
+  try {
+    const { sources, statuses } = await fetchCitedSources(a);
+    for (const src of sources) if (!corpus.some(c => c.name === src.name)) corpus.push(src);
+    renderCorpus(); markStale();
+    $('citeStatus').innerHTML = `<p>Cited sources: ${sources.length} abstract(s) fetched and added as reference sources above, out of ${statuses.length} DOI(s) found. Run Check similarity to compare them — a failed fetch is listed below, never as 0%.</p><ul>${statuses.map(x => `<li>${esc(x.doi)}${x.title ? ` — ${esc(x.title.slice(0, 80))}` : ''}: ${esc(x.status)}</li>`).join('')}</ul>`;
+  } catch (e) { $('citeStatus').innerHTML = `<p role="alert">Cited-source fetch failed: ${esc(e.message)}. Local check still works.</p>`; }
+  $('citeSearch').disabled = false; $('citeSearch').textContent = 'Check my cited sources (by DOI)';
+};
 $('oaSearch').onclick = async () => {
   const a = $('docA').value;
   try {

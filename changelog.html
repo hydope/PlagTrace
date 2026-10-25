@@ -6,6 +6,12 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
+<h2>v0.7.1 — 2026-10-25 (check cited sources by DOI, engine and accuracy numbers unchanged)</h2>
+<ul>
+<li>New button in step 2: "Check my cited sources (by DOI)". For every DOI in your document it fetches that article's abstract via OpenAlex (works endpoint, CORS *) with a DOAJ fallback, adds it as a reference source, and shows a per-DOI status list. A failed fetch is listed as not fetched, never as 0%.</li>
+<li>Verified on the real paper: 12/12 DOIs fetched, 12/12 abstracts via OpenAlex. Comparison against all 12 cited abstracts is still 0% — because the paper paraphrases its sources, it does not copy their abstracts verbatim, and this engine is verbatim-only (minimum 8 words / 40 chars). Proof the engine would catch a real copy: a test document containing 300 verbatim characters from the Donaldson &amp; Preston abstract scored 80.4% union, 1 passage, 295 chars.</li>
+<li>Limit stated plainly: abstracts only. Full text is usually behind a publisher paywall or a browser CORS block, so a cited full text that matches a paraphrased sentence in your paper will still not be found by any verbatim tool — that is a paraphrase blind spot, not a 0% bug, and it is why the tool never calls a result "clean".</li>
+</ul>
 <h2>v0.7.0 — 2026-10-25 (free-database integration, engine and accuracy numbers unchanged)</h2>
 <ul>
 <li>DOAJ integrated: open-access journal abstracts are now searched with your phrases (first 6 words, because a 12-word DOAJ query returns nothing) and compared locally, with a link to each article. Verified on the real paper: 4 DOAJ abstracts added (e.g. "Short-term thinking, long-term costs: How managerial myopia undermines green innovation"); 0-match abstracts collapse to one line under v0.6.4, they do not get empty cards. Pre-publish fix: DOAJ article links now correctly prefer the fulltext URL and fall back to the DOI URL — the first build could have produced a broken doi.org/undefined link for articles without a DOI.</li>
@@ -75,4 +81,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.7.0 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.7.1 · MIT</p></footer></body></html>
