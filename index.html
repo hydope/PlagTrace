@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlagTrace — privacy-first similarity screening, in your browser</title>
+<meta name="description" content="PlagTrace compares documents locally in your browser. No uploads to any server, no verdict — per-source similarity evidence only.">
+<link rel="stylesheet" href="styles.css"></head>
+<body><a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
+<nav><a href="index.html">Compare</a> · <a href="limitations.html">Limitations</a> · <a href="COMPARISON.md">Top-10 comparison</a> · <a href="FEATURE-COMPARISON.md">What the screenshots taught us</a> · <a href="AI-DETECTION-NOTE.md">Why no AI %</a></nav></header>
+<main id="main">
+<section class="hero"><h1>Check similarity, <span>not guilt.</span></h1>
+<p>Paste or upload essays, papers, and academic drafts. PlagTrace shows, source by source, exactly which passages match, how many words matched, and what was excluded — all on your device. Nothing is sent to any server.</p>
+<p class="scope"><strong>Scope, stated up front:</strong> PlagTrace checks only the documents <em>you</em> supply. It does not search the web, Turnitin's database, or any publisher database. A "no match" here means "no match in your supplied documents" — never "no match anywhere".</p>
+<p class="banner">This is a screening aid. Only a human reviewer may decide misconduct, after giving the student a chance to respond.</p></section>
+
+<section aria-labelledby="inputs"><h2 id="inputs">1 · Add your documents</h2>
+<p class="hint">Upload options: paste text, drag &amp; drop a file, or use the file picker. Accepted: .txt, .md, .docx, .pdf (text layer only), and source-code files. Files are read in your browser and never uploaded.</p>
+<div class="grid">
+<div class="card dropzone" id="dropA" tabindex="0"><label for="docA">Document A — the text to check</label>
+<textarea id="docA" rows="10" placeholder="Paste your text here, or drop a file onto this card…"></textarea>
+<p class="counts"><span id="countA">0 words · 0 characters</span> <span id="fileAName"></span></p>
+<p><button id="pasteA" type="button">Paste from clipboard</button> <label class="filebtn">Upload file <input id="fileA" type="file" accept=".txt,.md,.docx,.pdf,.js,.py,.java,.c,.cpp,.ts,.html,.css"></label></p></div>
+<div class="card dropzone" id="dropB" tabindex="0"><label for="docB">Document B — compare against</label>
+<textarea id="docB" rows="10" placeholder="Paste the second document here, or drop a file onto this card…"></textarea>
+<p class="counts"><span id="countB">0 words · 0 characters</span> <span id="fileBName"></span></p>
+<p><button id="pasteB" type="button">Paste from clipboard</button> <label class="filebtn">Upload file <input id="fileB" type="file" accept=".txt,.md,.docx,.pdf,.js,.py,.java,.c,.cpp,.ts,.html,.css"></label></p></div>
+</div>
+<div class="card"><label>Reference sources (optional) — drag &amp; drop files here, or pick them</label>
+<div class="dropzone" id="dropCorpus" tabindex="0"><p>Drop reference files here, or <label class="filebtn">choose files <input id="corpus" type="file" multiple accept=".txt,.md,.docx,.pdf,.js,.py,.java,.c,.cpp,.ts,.html,.css"></label></p></div>
+<ul id="corpusList" aria-label="Reference sources"></ul>
+<p>Untick a source to remove it from the next run, or use its Remove button. Removed sources are named in the report — removal recalculates, it does not hide history.</p></div>
+</section>
+
+<section aria-labelledby="settings"><h2 id="settings">2 · Settings (shown in every exported report)</h2>
+<div class="grid">
+<label>Mode <select id="mode"><option value="text">Prose</option><option value="code">Source code (identifier-normalised)</option></select></label>
+<label>Shingle size k <input id="k" type="number" value="5" min="3" max="12"></label>
+<label>Winnowing window <input id="win" type="number" value="4" min="1" max="12"></label>
+<label>Minimum match (words) <input id="minWords" type="number" value="8" min="3" max="50"></label>
+</div>
+<p><label><input id="exQuotes" type="checkbox" checked> Exclude quoted text</label>
+<label><input id="exCite" type="checkbox" checked> Exclude citations / bibliography section</label>
+<label><input id="exBoiler" type="checkbox" checked> Exclude boilerplate stop-shingles</label></p>
+<label for="stopList">Stop-shingles (one per line, editable)</label><textarea id="stopList" rows="4"></textarea>
+<p><button id="run" class="primary" type="button">Check similarity locally</button> <button id="loadDemo" type="button">Load demo pair</button></p>
+<p>No AI-text detection and no "humanizer" are included, by design. See <a href="FEATURE-COMPARISON.md">what the competitor screenshots taught us — and what we refused to copy</a>.</p>
+</section>
+<section id="results" aria-live="polite"></section>
+</main>
+<footer><p>PlagTrace v0.3.0 · MIT · All computation runs on your device. <a href="limitations.html">What this tool cannot detect</a></p></footer>
+<script type="module" src="src/app.js"></script></body></html>
