@@ -6,6 +6,13 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
+<h2>v0.6.1 — 2026-10-25 (.docx fix only, engine and accuracy numbers unchanged)</h2>
+<ul>
+<li>Fixed .docx upload failing with "Could not find word/document.xml" on real Word/Pages files. Cause: the old extractor scanned local ZIP headers, which break when a writer uses the data-descriptor flag (compressed size left as 0 locally). The extractor now reads the ZIP central directory, which always holds true sizes and offsets, with the old scan only as a fallback. Proven with a data-descriptor .docx that failed before and extracts now, plus a real python-docx file.</li>
+<li>.docx text is now paragraph-aware: runs inside a paragraph join with no space (so a word split across runs does not become two words), paragraphs join with a blank line.</li>
+<li>New tests: tests/files.test.mjs (5 tests, run in CI) covering normal, data-descriptor, and missing-document .docx files.</li>
+<li>If a .docx still cannot be read, the error now says so plainly and gives the workaround (copy-paste, or save as .txt) instead of a cryptic internal path.</li>
+</ul>
 <h2>v0.6.0 — 2026-10-24 (engine unchanged, so v0.5.0 accuracy numbers still apply)</h2>
 <ul>
 <li>Stale results fixed: editing a document, changing a setting, or removing a source marks results as outdated until you re-run.</li>
@@ -36,4 +43,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.6.0 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.6.1 · MIT</p></footer></body></html>
