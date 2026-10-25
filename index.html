@@ -36,7 +36,8 @@
 <div class="card"><p><strong>Privacy trade-off, read before clicking:</strong> the local check sends nothing anywhere. Clicking below is the <em>only</em> step that sends anything out — the search phrases taken from Document A go to Wikipedia's public API and, best effort, Semantic Scholar. Full documents are never uploaded; only short search phrases are sent, and the comparison itself still runs in your browser.</p>
 <p><button id="netSearch" type="button">Search internet sources</button></p>
 <div id="netStatus" aria-live="polite"></div>
-<p>Fetched articles are added as reference sources above, with a link to each source. Untick or remove them like any other source. If Wikipedia or Semantic Scholar rate-limits you, that is reported — it is never read as "no match".</p></div>
+<p>Fetched articles are added as reference sources above, with a link to each source. Untick or remove them like any other source. If Wikipedia or Semantic Scholar rate-limits you, that is reported — it is never read as "no match".</p>
+<p class="warn"><strong>Academic papers, read this first:</strong> this search covers Wikipedia and Semantic Scholar abstracts only. It does not check the journal articles, books, or student papers a university checker uses. A 0% here is not proof your paper is clean — do not submit based on it alone.</p></div>
 </section>
 <section aria-labelledby="settings"><h2 id="settings">3 · Check</h2>
 <p><button id="run" class="primary" type="button">Check similarity locally</button> <button id="loadDemo" type="button">Load demo pair</button></p>
@@ -58,5 +59,5 @@
 <div id="staleNote" class="stale" aria-live="polite"></div>
 <section id="results" aria-live="polite"></section>
 </main>
-<footer><p>PlagTrace v0.6.1 · MIT · By <a href="https://github.com/hydope">hydope</a> · <a href="https://github.com/hydope/PlagTrace/issues">Report a bug / false positive</a> · <a href="changelog.html">Changelog</a> · <a href="security.html">Security &amp; contact</a> · Local check sends nothing anywhere; internet search is opt-in only.</p></footer>
+<footer><p>PlagTrace v0.6.2 · MIT · By <a href="https://github.com/hydope">hydope</a> · <a href="https://github.com/hydope/PlagTrace/issues">Report a bug / false positive</a> · <a href="changelog.html">Changelog</a> · <a href="security.html">Security &amp; contact</a> · Local check sends nothing anywhere; internet search is opt-in only.</p></footer>
 <script type="module" src="src/app.js"></script></body></html>

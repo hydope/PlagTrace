@@ -10,12 +10,41 @@
 //   * this is Wikipedia + scholarly search only. It is NOT Google, NOT the
 //     whole web, NOT Turnitin's database, and NOT a publisher database.
 //     A "no match" here means "no match in the Wikipedia articles fetched".
+const STOPWORDS = new Set('the and for with that this from have were which their will would should there about into through during before after above below between under again further then once here when where why how all any both each few more most other some such only own same than too very can just don should now also one two first second third new old good bad great well much many made make take takes taken part parts way ways use used using based upon per via etc'.split(' '));
 export function searchPhrases(text, maxPhrases = 3) {
-  const sentences = text.split(/(?<=[.!?])\s+/).map(s => s.replace(/\s+/g, ' ').trim()).filter(s => s.length >= 40);
-  const scored = sentences.map(s => {
-    const words = s.split(' ').filter(Boolean);
-    const longWords = words.filter(w => w.replace(/[^A-Za-z]/g, '').length >= 7).length;
-    return { sentence: s, score: longWords * 2 + Math.min(words.length, 25) };
+  // Cut the References/Bibliography section: searching reference lines
+  // finds the cited papers' titles, not the student's own prose.
+  let body = text;
+  const refMatch = body.match(/(^|\n)\s*(References|Bibliography|Works Cited)\s*(\n|$)/i);
+  if (refMatch) body = body.slice(0, refMatch.index);
+  // Split by paragraph first, so a heading or title line (no sentence
+  // punctuation) does not merge with the next paragraph into a fake
+  // "sentence". Headings, title pages, author/university lines are dropped.
+  const sentences = [];
+  for (const para of body.split(/\n\s*\n/)) {
+    const p = para.replace(/\s+/g, ' ').trim();
+    if (!p) continue;
+    if (!/[.!?]/.test(p) && p.length < 200) continue;
+    for (const s of p.split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(x => x.length >= 40)) sentences.push(s);
+  }
+  if (!sentences.length) return [];
+  // Score by distinctiveness, not by length: a sentence is a good search
+  // query if it contains content words that appear in few other sentences
+  // in this document. Generic academic filler ("business leaders should",
+  // "companies must also") repeats everywhere and scores low; a sentence
+  // naming a specific author, theory, or study scores high. Citation
+  // sentences get a bonus: they point at the work most likely to be a source.
+  const sentWords = sentences.map(s => {
+    const words = s.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w.length >= 4 && !STOPWORDS.has(w));
+    return [...new Set(words)];
+  });
+  const df = new Map();
+  for (const words of sentWords) for (const w of words) df.set(w, (df.get(w) || 0) + 1);
+  const scored = sentences.map((s, i) => {
+    const rare = sentWords[i].filter(w => df.get(w) <= 2).length;
+    const longWords = s.split(' ').filter(w => w.replace(/[^A-Za-z]/g, '').length >= 7).length;
+    const citation = /\(\s*(19|20)\d\d/.test(s) ? 10 : 0;
+    return { sentence: s, score: rare * 3 + longWords + citation };
   }).sort((a, b) => b.score - a.score);
   const out = [];
   for (const s of scored) {

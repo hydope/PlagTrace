@@ -6,6 +6,12 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
+<h2>v0.6.2 — 2026-10-25 (internet search fix + safety warning, engine and accuracy numbers unchanged)</h2>
+<ul>
+<li>Fixed internet search phrases for academic papers. Old scoring picked headings, title pages, and generic filler ("Recommendations for Business Leaders…", author/university lines) because it scored by long words and merged headings with the next paragraph. New scoring: references section cut, headings/title lines dropped, sentences scored by distinctive words (words appearing in few other sentences) with a bonus for cited sentences. On a real stakeholder-theory paper, phrases changed from title/generic filler to a Donaldson &amp; Preston (1995) stakeholder sentence and a digital-ESG ASEAN sentence — and Wikipedia now returns the actual "Stakeholder theory" article first, instead of six unrelated articles.</li>
+<li>Added an unmissable warning on internet/corpus results, and before the search button: a 0% here does NOT mean a paper is clean. This check covers Wikipedia and Semantic Scholar abstracts only — it does not check journal articles, books, publisher databases, or other students' work, which is what university checkers use. Never treat it as a Turnitin result.</li>
+<li>Honest limit, still true: even with better phrases, a paper can score 0% here and still match a cited journal article, because those journals are not in Wikipedia. That limit is now stated on the results page, not just in a disclaimer.</li>
+</ul>
 <h2>v0.6.1 — 2026-10-25 (.docx fix only, engine and accuracy numbers unchanged)</h2>
 <ul>
 <li>Fixed .docx upload failing with "Could not find word/document.xml" on real Word/Pages files. Cause: the old extractor scanned local ZIP headers, which break when a writer uses the data-descriptor flag (compressed size left as 0 locally). The extractor now reads the ZIP central directory, which always holds true sizes and offsets, with the old scan only as a fallback. Proven with a data-descriptor .docx that failed before and extracts now, plus a real python-docx file.</li>
@@ -43,4 +49,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.6.1 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.6.2 · MIT</p></footer></body></html>
