@@ -1,4 +1,4 @@
-import { compareDocs, compareAgainstCorpus, matchedWords, DEFAULT_STOP_SHINGLES, excludedSpans } from './sim.js';
+import { compareDocs, compareAgainstCorpus, matchedWords, DEFAULT_STOP_SHINGLES, excludedSpans, paraphraseSignals } from './sim.js';
 import { extractText } from './files.js';
 import { fetchInternetSources, extractReferences, findOpenCopies, fetchCitedSources } from './internet.js';
 const $ = id => document.getElementById(id);
@@ -65,7 +65,17 @@ async function run() {
   const excludedNames = new Set(corpus.filter(c => !c.included).map(c => c.name));
   const corp = compareAgainstCorpus(a, corpus, settings, excludedNames);
   const mainWords = main ? matchedWords(a, main.matches) : 0;
-  const report = { tool: 'PlagTrace', version: '0.7.1', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
+  const bowPairs = [];
+  const bowSources = [];
+  if (main) { for (const p of paraphraseSignals(a, b)) bowPairs.push({ source: 'Document B', ...p }); }
+  for (const c of corpus) {
+    if (!c.included || !c.text) continue;
+    const sig = paraphraseSignals(a, c.text).slice(0, 10);
+    if (sig.length) bowSources.push({ source: c.name, count: sig.length });
+    for (const p of sig) bowPairs.push({ source: c.name, ...p });
+  }
+  const bowHtml = bowPairs.length ? `<h3>Possible paraphrase / reordered signals — separate from verbatim coverage, NOT a flag</h3><p>Word overlap only (Jaccard / containment of content words, at least 3 shared words). A high overlap can be common topic vocabulary, a template, or a genuine paraphrase. This is NOT merged into coverage %, NOT proof of copying, and a human reviewer must read the pair. Full synonym rewrites score 0 here too — that needs embeddings, which this static tool does not have.</p>${bowPairs.slice(0, 20).map(p => `<p><strong>${esc(p.source)}</strong> — shared ${p.shared} words, Jaccard ${p.jaccard}, containment ${p.containment}<br>A: ${esc(p.aSentence)}<br>B/source: ${esc(p.bSentence)}</p>`).join('')}${bowPairs.length > 20 ? `<p>…and ${bowPairs.length - 20} more signal(s) in the JSON report.</p>` : ''}` : '<h3>Possible paraphrase / reordered signals</h3><p>No sentence pair met the word-overlap threshold. Full synonym rewrites also score 0 here — that is a known blind spot, not proof of originality.</p>';
+  const report = { tool: 'PlagTrace', version: '0.8.0', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null, paraphraseSignals: bowPairs };
   const r = main;
   const allMatches = main ? main.matches : corp.perSource.flatMap(p => p.matches);
   const allExcluded = main ? [...main.excluded.docA, ...main.excluded.docB] : excludedSpans(a, settings);
@@ -105,6 +115,7 @@ async function run() {
   ${sourceCards || '<p>No source with a matching passage. See the fetched-and-compared list below.</p>'}
   ${zeroNote}
   ${refsNote}
+  ${bowHtml}
   <p>Union coverage across included sources: <strong>${pct(corp.unionCoveredPercent)}</strong>. Removed sources (fully removed this session or unticked for this run — removal recalculates, it does not hide history): ${report.removedSources.length ? report.removedSources.map(esc).join(', ') : 'none'}.</p>
   <h3>Excluded from scoring</h3><ul>${allExcluded.map(s => `<li>${esc(s.reason)} — ${esc(s.text)}</li>`).join('') || '<li>None</li>'}</ul>
   <h3>Matched passages — human review (required before any decision)</h3>

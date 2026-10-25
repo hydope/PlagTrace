@@ -67,3 +67,16 @@ test('short common phrase alone is inconclusive', () => {
   const r = compareDocs('in this paper we present results', 'in this paper we present results and discussion');
   assert.equal(r.evidenceBand, 'inconclusive');
 });
+
+import { paraphraseSignals } from '../src/sim.js';
+test('paraphraseSignals finds reordered sentences, not unrelated text', () => {
+  const sig = paraphraseSignals('The cat sat on the mat. The dog barked at the mailman. The bird sang in the morning tree.', 'The bird sang in the morning tree. The dog barked at the mailman. The cat sat on the mat.');
+  assert.ok(sig.length >= 3, JSON.stringify(sig));
+  assert.equal(paraphraseSignals('Quantum computers use qubits and superposition to solve certain problems faster.', 'Medieval castles were built from stone with thick walls, towers, and moats to defend.').length, 0);
+});
+test('paraphraseSignals finds light edits, misses full synonym rewrites', () => {
+  const light = paraphraseSignals('Photosynthesis is the process by which green plants convert sunlight, water, and carbon dioxide into oxygen and glucose.', 'Photosynthesis is the method by which green plants transform sunlight, water, and carbon dioxide into oxygen and glucose for growth.');
+  assert.ok(light.length >= 1);
+  const full = paraphraseSignals('Photosynthesis is the process by which green plants convert sunlight, water, and carbon dioxide into oxygen and glucose.', 'Plants make their own food using light energy, water and air, producing sugar and releasing oxygen as a byproduct.');
+  assert.equal(full.length, 0);
+});

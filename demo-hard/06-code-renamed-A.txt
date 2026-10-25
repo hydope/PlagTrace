@@ -1,0 +1,1 @@
+function calculateTotal(price, quantity) { let total = price * quantity; if (total > 100) { return total * 0.9; } return total; }

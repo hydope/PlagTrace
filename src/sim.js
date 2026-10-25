@@ -261,3 +261,30 @@ export function compareAgainstCorpus(textA, sources, settings = {}, excludedName
   const union = coveredChars(unionMatches, textA.length);
   return { perSource, unionCoveredChars: union.chars, unionCoveredPercent: union.percent, includedCount: included.length, excludedCount: perSource.length - included.length };
 }
+
+// Sentence bag-of-words signal — SEPARATE from verbatim coverage, never
+// merged into it. For each sentence pair, compare content-word sets
+// (lowercased, stopword-filtered, >=3 chars). A pair is a signal when
+// Jaccard >= 0.35 OR containment >= 0.6, with at least 4 shared content
+// words. This catches reordered sentences (identical wording, new order,
+// which the verbatim engine misses when sentences are short) and light
+// edits (most words shared). It does NOT catch full synonym rewrites —
+// that needs embeddings, which this static tool does not have — and a
+// high overlap can also be common topic vocabulary, so a signal is never
+// a flag and never proof of copying. Returns [{aSentence, bSentence,
+// shared, jaccard, containment}].
+const BOW_STOP = new Set('the and for with that this from have were which their will would should there about into through during before after above below between under again further then once here when where why how all any both each few more most other some such only own same than too very can just don should now also one two first second third new old good bad great well much many made make take takes taken part parts way ways use used using based upon per via etc is are was be been being a an of to in on by at as it its'.split(' '));
+function bowWords(s) { return new Set(s.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w.length >= 3 && !BOW_STOP.has(w))); }
+function bowSentences(t) { return t.split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(x => x.length >= 20); }
+export function paraphraseSignals(textA, textB) {
+  const out = [];
+  for (const sa of bowSentences(textA)) for (const sb of bowSentences(textB)) {
+    const wa = bowWords(sa), wb = bowWords(sb);
+    const shared = [...wa].filter(w => wb.has(w)).length;
+    if (shared < 3) continue;
+    const jac = shared / (wa.size + wb.size - shared || 1);
+    const cont = shared / Math.min(wa.size, wb.size || 1);
+    if (jac >= 0.35 || cont >= 0.6) out.push({ aSentence: sa.slice(0, 300), bSentence: sb.slice(0, 300), shared, jaccard: Math.round(jac * 100) / 100, containment: Math.round(cont * 100) / 100 });
+  }
+  return out;
+}

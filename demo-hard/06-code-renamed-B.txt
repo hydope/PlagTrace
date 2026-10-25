@@ -1,0 +1,1 @@
+function calculateTotal(cost, amount) { let sum = cost * amount; if (sum > 100) { return sum * 0.9; } return sum; }

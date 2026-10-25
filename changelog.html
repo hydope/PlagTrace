@@ -6,6 +6,12 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
+<h2>v0.8.0 — 2026-10-25 (sentence word-overlap paraphrase/reordered signal, verbatim engine and accuracy numbers unchanged)</h2>
+<ul>
+<li>New "Possible paraphrase / reordered signals" section, separate from verbatim coverage, never merged into it, never a flag. Sentence content-word overlap (Jaccard &gt;= 0.35 or containment &gt;= 0.6, at least 3 shared words) is shown per pair with its scores, so a human reviewer can read it.</li>
+<li>Measured, not guessed: reordered short sentences (hard test 05) now show 3/3 signals where verbatim showed 0%; held-out reordered pairs show 2–3 signals; held-out negatives tested show 0 signals; light edits show a signal (Jaccard 0.64). Full synonym rewrites still score 0 here — that needs embeddings, which this static tool does not have, and the section says so.</li>
+<li>No AI detection, no NVIDIA API in the tool: the NVIDIA connector only offers chat completions (not embeddings), its API is not CORS-accessible from a static site, and an LLM authorship judgement has no measured false-positive rate. An AI % would be a verdict in disguise, and PlagTrace does not ship verdicts.</li>
+</ul>
 <h2>v0.7.1 — 2026-10-25 (check cited sources by DOI, engine and accuracy numbers unchanged)</h2>
 <ul>
 <li>New button in step 2: "Check my cited sources (by DOI)". For every DOI in your document it fetches that article's abstract via OpenAlex (works endpoint, CORS *) with a DOAJ fallback, adds it as a reference source, and shows a per-DOI status list. A failed fetch is listed as not fetched, never as 0%.</li>
@@ -81,4 +87,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.7.1 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.8.0 · MIT</p></footer></body></html>
