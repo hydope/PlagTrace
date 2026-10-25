@@ -183,6 +183,24 @@ node tests/metrics.mjs
 Demo: click "Load demo pair" in the app, or open `demo/sample-a.txt` and
 `demo/sample-b.txt`.
 
+## New in v0.4.0 — no second document? Internet sources (opt-in)
+
+- Paste Document A alone, click **Search internet sources**, and
+  PlagTrace fetches up to 6 Wikipedia articles (plus Semantic Scholar
+  abstracts, best effort) matching distinctive sentences from your
+  text, then compares them locally. No Document B needed.
+- Privacy cost is explicit and auditable: only short search phrases
+  leave the browser, only after you click, and the exact phrases sent
+  are shown. Full documents are never uploaded.
+- Honest limits, documented in `INTERNET-CHECK.md`: not the whole
+  web, not Turnitin, not publisher databases; Semantic Scholar
+  rate-limited (429) on this shared network in testing and is
+  reported, never read as a clean result. Inspiration, with stars,
+  from https://github.com/topics/plagiarism-checker (148 repos):
+  JPlag (1,987), Dolos (355), NoplagLabs/noplag-engine (87 — the
+  closest model: auditable, verbatim/near-verbatim only, local corpus
+  in open source), copy-spotter (58).
+
 ## New in v0.3.0 — upload options, better UI, screenshot-driven features
 
 - **Upload options:** paste, Paste-from-clipboard buttons, drag & drop

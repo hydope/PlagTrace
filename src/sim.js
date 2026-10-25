@@ -4,7 +4,7 @@
 // Jaccard, containment, TF-IDF cosine, and identifier-normalised code tokens.
 // This module never produces a misconduct verdict. It reports similarity
 // evidence only; a human reviewer decides anything further.
-export const VERSION = '0.3.0';
+export const VERSION = '0.4.0';
 
 // Words in `text` that fall inside at least one matched interval in Document A.
 // Counts whole words, never double-counting an overlapping word. Used for the

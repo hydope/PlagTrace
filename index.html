@@ -5,11 +5,11 @@
 <link rel="stylesheet" href="styles.css"></head>
 <body><a class="skip" href="#main">Skip to content</a>
 <header class="top"><div class="brand"><span class="logo" aria-hidden="true">P</span><span class="brandname">PlagTrace</span></div>
-<nav><a href="index.html">Compare</a> · <a href="limitations.html">Limitations</a> · <a href="COMPARISON.md">Top-10 comparison</a> · <a href="FEATURE-COMPARISON.md">What the screenshots taught us</a> · <a href="AI-DETECTION-NOTE.md">Why no AI %</a></nav></header>
+<nav><a href="index.html">Compare</a> · <a href="limitations.html">Limitations</a> · <a href="COMPARISON.md">Top-10 comparison</a> · <a href="FEATURE-COMPARISON.md">What the screenshots taught us</a> · <a href="INTERNET-CHECK.md">Internet check</a> · <a href="AI-DETECTION-NOTE.md">Why no AI %</a></nav></header>
 <main id="main">
 <section class="hero"><h1>Check similarity, <span>not guilt.</span></h1>
-<p>Paste or upload essays, papers, and academic drafts. PlagTrace shows, source by source, exactly which passages match, how many words matched, and what was excluded — all on your device. Nothing is sent to any server.</p>
-<p class="scope"><strong>Scope, stated up front:</strong> PlagTrace checks only the documents <em>you</em> supply. It does not search the web, Turnitin's database, or any publisher database. A "no match" here means "no match in your supplied documents" — never "no match anywhere".</p>
+<p>Paste or upload essays, papers, and academic drafts — even if you have no second document. PlagTrace shows, source by source, exactly which passages match, how many words matched, and what was excluded. The local check never leaves your device.</p>
+<p class="scope"><strong>Scope, stated up front:</strong> Without a second document, use the optional internet search below (Wikipedia + scholarly search). It does <em>not</em> search the whole web, Turnitin's database, or any publisher database. A "no match" means "no match in the sources fetched" — never "no match anywhere". See <a href="INTERNET-CHECK.md">Internet check</a>.</p>
 <p class="banner">This is a screening aid. Only a human reviewer may decide misconduct, after giving the student a chance to respond.</p></section>
 
 <section aria-labelledby="inputs"><h2 id="inputs">1 · Add your documents</h2>
@@ -44,7 +44,13 @@
 <p><button id="run" class="primary" type="button">Check similarity locally</button> <button id="loadDemo" type="button">Load demo pair</button></p>
 <p>No AI-text detection and no "humanizer" are included, by design. See <a href="FEATURE-COMPARISON.md">what the competitor screenshots taught us — and what we refused to copy</a>.</p>
 </section>
+<section aria-labelledby="internet"><h2 id="internet">3 · No second document? Optional internet sources</h2>
+<div class="card"><p><strong>Privacy trade-off, read before clicking:</strong> the local check sends nothing anywhere. Clicking below is the <em>only</em> step that sends anything out — the search phrases taken from Document A go to Wikipedia's public API and, best effort, Semantic Scholar. Full documents are never uploaded; only short search phrases are sent, and the comparison itself still runs in your browser.</p>
+<p><button id="netSearch" type="button">Search internet sources</button></p>
+<div id="netStatus" aria-live="polite"></div>
+<p>Fetched articles are added as reference sources above, with a link to each source. Untick or remove them like any other source. If Wikipedia or Semantic Scholar rate-limits you, that is reported — it is never read as "no match".</p></div>
+</section>
 <section id="results" aria-live="polite"></section>
 </main>
-<footer><p>PlagTrace v0.3.0 · MIT · All computation runs on your device. <a href="limitations.html">What this tool cannot detect</a></p></footer>
+<footer><p>PlagTrace v0.4.0 · MIT · Local computation runs on your device; internet search is opt-in only. <a href="limitations.html">What this tool cannot detect</a></p></footer>
 <script type="module" src="src/app.js"></script></body></html>
