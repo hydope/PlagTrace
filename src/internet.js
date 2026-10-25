@@ -48,11 +48,32 @@ export function searchPhrases(text, maxPhrases = 3) {
   }).sort((a, b) => b.score - a.score);
   const out = [];
   for (const s of scored) {
-    const q = s.sentence.split(' ').slice(0, 12).join(' ').replace(/[^\w\s-]/g, '');
+    let words = s.sentence.split(' ');
+    // Strip a citation lead-in ("Widyaningsih et al. (2026) explore ...")
+    // so the search phrase starts with content words, not an author/year.
+    if (words[1] && words[1].toLowerCase().replace(/[^a-z]/g, '') === 'et') words = words.slice(4);
+    while (words.length && (/^(19|20)\d\d$/.test(words[0].replace(/[^0-9]/g, '')) || words[0].toLowerCase().replace(/[^a-z]/g, '') === 'et' || words[0].toLowerCase().replace(/[^a-z]/g, '') === 'al')) words = words.slice(1);
+    const q = words.slice(0, 12).join(' ').replace(/[^\w\s-]/g, '');
     if (q && !out.includes(q)) out.push(q);
     if (out.length >= maxPhrases) break;
   }
   return out;
+}
+// References section, parsed for the NOT-CHECKED list. Evidence only:
+// each entry is a line from the document's own References section that
+// contains a year; no source is claimed checked unless its full text was
+// actually compared. Returns [] when there is no References section.
+export function extractReferences(text) {
+  const m = text.match(/\n\s*(References|Bibliography|Works Cited)\s*\n/i);
+  if (!m) return [];
+  const tail = text.slice(m.index + m[0].length);
+  const entries = [];
+  for (const line of tail.split(/\n+/)) {
+    const t = line.replace(/\s+/g, ' ').trim();
+    if (t.length >= 30 && /\b(19|20)\d\d\b/.test(t)) entries.push(t.slice(0, 220));
+    if (entries.length >= 50) break;
+  }
+  return entries;
 }
 const WIKI = 'https://en.wikipedia.org/w/api.php';
 async function wikiSearch(phrase) {

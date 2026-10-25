@@ -1,6 +1,6 @@
-import { compareDocs, compareAgainstCorpus, matchedWords, DEFAULT_STOP_SHINGLES } from './sim.js';
+import { compareDocs, compareAgainstCorpus, matchedWords, DEFAULT_STOP_SHINGLES, excludedSpans } from './sim.js';
 import { extractText } from './files.js';
-import { fetchInternetSources } from './internet.js';
+import { fetchInternetSources, extractReferences } from './internet.js';
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pct = x => (x * 100).toFixed(1) + '%';
@@ -65,21 +65,26 @@ async function run() {
   const excludedNames = new Set(corpus.filter(c => !c.included).map(c => c.name));
   const corp = compareAgainstCorpus(a, corpus, settings, excludedNames);
   const mainWords = main ? matchedWords(a, main.matches) : 0;
-  const report = { tool: 'PlagTrace', version: '0.6.3', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + Semantic Scholar only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + Semantic Scholar only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
+  const report = { tool: 'PlagTrace', version: '0.6.4', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + Semantic Scholar only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + Semantic Scholar only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
   const r = main;
   const allMatches = main ? main.matches : corp.perSource.flatMap(p => p.matches);
-  const allExcluded = main ? [...main.excluded.docA, ...main.excluded.docB] : [];
-  const sourceCards = corp.perSource.map((p, i) => {
+  const allExcluded = main ? [...main.excluded.docA, ...main.excluded.docB] : excludedSpans(a, settings);
+  const matchedSources = corp.perSource.filter(p => p.matchCount > 0);
+  const zeroSources = corp.perSource.filter(p => p.matchCount === 0);
+  const sourceCards = matchedSources.map((p, i) => {
     const words = matchedWords(a, p.matches);
     const contextHtml = p.matches.slice(0, 3).map(m => {
       const cs = Math.max(0, m.aStart - 60), ce = Math.min(a.length, m.aEnd + 60);
       const ctx = a.slice(cs, ce);
-      return `<p class="context">…${highlight(ctx, [{ start: m.aStart - cs, end: m.aEnd - cs }])}… <button type="button" class="copycite" data-src="${i}" data-a="${m.aStart}" data-b="${m.aEnd}">Copy citation</button></p>`;
+      return `<p class="context">…${highlight(ctx, [{ start: m.aStart - cs, end: m.aEnd - cs }])}… <button type="button" class="copycite" data-src="${corp.perSource.indexOf(p)}" data-a="${m.aStart}" data-b="${m.aEnd}">Copy citation</button></p>`;
     }).join('');
     return `<article class="sourcecard"><h4>[${i + 1}] ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.source)}</a>` : esc(p.source)}</h4>
     <p><strong>${words} words matched</strong> · <strong>${pct(p.coveredPercent)}</strong> of Document A covered · ${p.matchCount} passage(s) · longest ${p.longestMatchChars} chars · band <span class="band-${p.evidenceBand}">${p.evidenceBand}</span> · ${p.flaggedForReview ? '<strong>Flagged for review</strong>' : 'Shown for context — not flagged (a single short passage alone is not enough)'} · ${p.included ? 'included' : 'removed from this run'}</p>
     ${contextHtml || '<p>No passage met the threshold for this source.</p>'}</article>`;
   }).join('');
+  const zeroNote = zeroSources.length ? `<p><strong>${zeroSources.length} source(s) fetched and compared locally — no passage met the threshold, so they get no card:</strong> ${zeroSources.map(p => esc(p.source)).join(', ')}. A source with no card was still checked; it simply did not match. Wikipedia keyword search returns related articles, not exact-phrase matches, so unrelated titles here are expected, not a bug in the comparison.</p>` : '';
+  const refs = extractReferences(a);
+  const refsNote = refs.length ? `<h3>Not checked — your cited sources (most important for an academic paper)</h3><p>These ${refs.length} entries come from your document's own References section. PlagTrace did <strong>not</strong> check them: it has no access to journal articles, books, or publisher databases, and Semantic Scholar was unreachable / rate-limited in this run. A 0% above does <strong>not</strong> cover these. To check one, upload its full text as a reference source in step 1 and re-run.</p><ul>${refs.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : '';
   const totalWordsMatched = corp.perSource.filter(p => p.included).reduce((s, p) => s + matchedWords(a, p.matches), 0);
   const flaggedSources = corp.perSource.filter(p => p.included && p.flaggedForReview).length;
   const donutPct = main ? Math.round(r.coveredPercent * 100) : Math.round(corp.unionCoveredPercent * 100);
@@ -97,7 +102,9 @@ async function run() {
   <p class="gloss"><strong>What these numbers mean, in plain words:</strong> Jaccard = the share of word-chunks common to both documents. Containment = the share of one document's chunks found in the other. Winnowing overlap = the share of fingerprints (a shortlist of chunks) that match. TF-IDF cosine = similarity weighted by how distinctive each word is. Band is <em>not</em> a judgement: high means the longest match is at least 200 characters or Jaccard is at least 0.5; medium means longest at least 80 characters or Jaccard at least 0.2; low means some overlap below that; inconclusive means no passage met the threshold. A high band is still not guilt.</p>
   <p>${esc(r.plainLanguage)}</p>` : `<div class="warn" role="alert"><strong>Do not submit based on this result alone.</strong> ${corp.unionCoveredPercent === 0 ? 'A 0% here does NOT mean your paper is clean. ' : ''}This check searched Wikipedia (and, when available, Semantic Scholar abstracts) only. It did NOT check journal articles, books, publisher databases, or other students' work — the sources university checkers use. A paper can score 0% here and still match a journal article. Check your cited sources yourself, and never treat this as a Turnitin result.</div><p>No Document B was supplied, so no A-vs-B score is shown. The per-source cards below — including any Wikipedia / Semantic Scholar sources fetched above — are the result. Union coverage across those sources: <strong>${pct(corp.unionCoveredPercent)}</strong>.</p>`}
   <h3>Sources — one card per source</h3>
-  ${sourceCards || '<p>No reference sources loaded. Add files above to get per-source cards.</p>'}
+  ${sourceCards || '<p>No source with a matching passage. See the fetched-and-compared list below.</p>'}
+  ${zeroNote}
+  ${refsNote}
   <p>Union coverage across included sources: <strong>${pct(corp.unionCoveredPercent)}</strong>. Removed sources (fully removed this session or unticked for this run — removal recalculates, it does not hide history): ${report.removedSources.length ? report.removedSources.map(esc).join(', ') : 'none'}.</p>
   <h3>Excluded from scoring</h3><ul>${allExcluded.map(s => `<li>${esc(s.reason)} — ${esc(s.text)}</li>`).join('') || '<li>None</li>'}</ul>
   <h3>Matched passages — human review (required before any decision)</h3>

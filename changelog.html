@@ -6,6 +6,14 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
+<h2>v0.6.4 — 2026-10-25 (fixes for the 0% academic-paper run, engine and accuracy numbers unchanged)</h2>
+<ul>
+<li>0-match internet sources no longer get full empty cards: they collapse into one line ("X source(s) fetched and compared locally — no passage met the threshold"), with an explanation that Wikipedia keyword search returns related articles, not exact-phrase matches. Sources with a real match still get full cards.</li>
+<li>New "Not checked — your cited sources" section: entries parsed from the document's own References section (verified on the real paper: 12 entries), with the plain statement that PlagTrace did not check them because it has no access to journal articles, books, or publisher databases. A 0% above does not cover these — upload a cited article's full text as a reference source to check it.</li>
+<li>Fixed "Excluded from scoring: None" in corpus mode: it now shows the actual excluded spans (quoted text and the References/Bibliography tail) instead of an empty list.</li>
+<li>Search phrases no longer start with a citation lead-in: "Widyaningsih et al. (2026) explore digital ESG…" now searches as "explore digital ESG and sustainable firm value among ASEAN companies including factors" (verified on the real paper). The previous phrase started with "2026".</li>
+<li>Evidence for why the old run looked like a joke, measured, not guessed: unquoted Wikipedia search for the paper's three phrases returned Stakeholder theory / Srettha Thavisin / Capital Markets Union / Fair trade / Sweatshop / Occupational safety and health — keyword hits, not phrase matches — while Semantic Scholar returned HTTP 429 on this network and "Load failed" in the user's browser. The comparison itself was correct (0% against Wikipedia); the presentation hid the real gap, which was the 12 unchecked journal articles.</li>
+</ul>
 <h2>v0.6.3 — 2026-10-25 (competitor-inspired features, engine and accuracy numbers unchanged)</h2>
 <ul>
 <li>Results summary bar, inspired by GPTZero's top line but with scope attached: coverage donut (not a verdict), words matched, sources checked, sources flagged, passages total, plus a checklist (Document B, sources checked, exclusions, reviewer decisions pending, and "AI %: deliberately not shown").</li>
@@ -58,4 +66,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.6.3 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.6.4 · MIT</p></footer></body></html>
