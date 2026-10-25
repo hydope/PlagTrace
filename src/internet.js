@@ -90,6 +90,33 @@ async function wikiExtract(title) {
   const p = Object.values(pages)[0];
   return p?.extract ? p.extract.slice(0, 20000) : '';
 }
+export function invertAbstract(idx) {
+  if (!idx) return '';
+  const words = [];
+  for (const [w, pos] of Object.entries(idx)) for (const p of pos) words[p] = w;
+  return words.filter(Boolean).join(' ');
+}
+async function doajSearch(phrase) {
+  // DOAJ treats a long phrase as AND of all terms and returns nothing;
+  // use the first 6 words so a real academic abstract can actually match.
+  const q = phrase.split(' ').slice(0, 6).join(' ');
+  const r = await fetch(`https://doaj.org/api/search/articles/${encodeURIComponent(q)}?pageSize=3`);
+  if (!r.ok) throw new Error(`DOAJ HTTP ${r.status}`);
+  const j = await r.json();
+  return (j.results || []).filter(x => x.bibjson?.abstract).map(x => {
+    const fulltext = (x.bibjson.link || []).find(l => l.type === 'fulltext')?.url || '';
+    const doi = (x.bibjson.identifier || []).find(i => i.type === 'DOI')?.id || '';
+    return { name: `DOAJ: ${x.bibjson.title || 'Untitled'}`, text: `${x.bibjson.title || ''}. ${x.bibjson.abstract}`, url: fulltext || (doi ? `https://doi.org/${doi}` : ''), included: true };
+  });
+}
+async function openAlexSearch(phrase) {
+  const q = phrase.split(' ').slice(0, 6).join(' ');
+  const r = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(q)}&per-page=3`);
+  if (r.status === 429) throw new Error('OpenAlex rate-limited (HTTP 429) from this network without an API key');
+  if (!r.ok) throw new Error(`OpenAlex HTTP ${r.status}`);
+  const j = await r.json();
+  return (j.results || []).filter(x => x.abstract_inverted_index).map(x => ({ name: `OpenAlex: ${x.title || 'Untitled'}`, text: `${x.title || ''}. ${invertAbstract(x.abstract_inverted_index)}`, url: x.doi || x.id || '', included: true }));
+}
 // Returns { sources: [{name, text, url}], errors: [strings] }
 export async function fetchInternetSources(text) {
   const phrases = searchPhrases(text);
@@ -108,6 +135,20 @@ export async function fetchInternetSources(text) {
       } catch (e) { errors.push(`Wikipedia extract failed for ${title}: ${e.message}`); }
     }
   }
+  // DOAJ (open-access journals, abstracts, CORS *) — best effort, like the others.
+  for (const phrase of phrases) {
+    if (sources.length >= 12) break;
+    try {
+      for (const src of await doajSearch(phrase)) { if (sources.length < 12 && !sources.some(x => x.name === src.name)) sources.push(src); }
+    } catch (e) { errors.push(`DOAJ search failed for "${phrase}": ${e.message} — skipped, not a "no match".`); break; }
+  }
+  // OpenAlex (inverted-index abstracts, CORS *) — best effort, rate-limited without a key.
+  for (const phrase of phrases) {
+    if (sources.length >= 12) break;
+    try {
+      for (const src of await openAlexSearch(phrase)) { if (sources.length < 12 && !sources.some(x => x.name === src.name)) sources.push(src); }
+    } catch (e) { errors.push(`OpenAlex: ${e.message} — skipped, not a "no match".`); break; }
+  }
   // Semantic Scholar, best effort only: a 429 / failure is an error, never a negative.
   try {
     const q = phrases[0] || '';
@@ -121,4 +162,23 @@ export async function fetchInternetSources(text) {
     }
   } catch (e) { errors.push(`Semantic Scholar unreachable (network or browser block, not a rate limit — the request never reached a server response): ${e.message} — skipped, not a "no match". If you see this repeatedly, try again later; Wikipedia results above are unaffected.`); }
   return { sources, errors, phrases };
+}
+
+// Unpaywall DOI lookup: returns open-access locations, NOT text to compare.
+// Requires a real email address (Unpaywall's rule); without one it returns
+// an error, never a silent empty result. Each entry is {doi, url, note}.
+export async function findOpenCopies(text, email) {
+  if (!email || !email.includes('@') || email.endsWith('@example.com')) throw new Error('Enter a real email address for Unpaywall — it requires one, and example.com addresses are rejected.');
+  const dois = [...new Set([...text.matchAll(/10\.\d{4,9}\/[-._;()/:A-Z0-9]+/gi)].map(m => m[0].replace(/[.,;]+$/, '')))].slice(0, 20);
+  const out = [];
+  for (const doi of dois) {
+    try {
+      const r = await fetch(`https://api.unpaywall.org/v2/${encodeURIComponent(doi)}?email=${encodeURIComponent(email)}`);
+      if (!r.ok) { out.push({ doi, url: '', note: `Unpaywall HTTP ${r.status}` }); continue; }
+      const j = await r.json();
+      const loc = j.best_oa_location;
+      out.push({ doi, url: loc?.url_for_pdf || loc?.url || '', note: loc ? (j.is_oa ? 'Open-access copy found' : 'Location found, access unclear') : 'No open-access copy found' });
+    } catch (e) { out.push({ doi, url: '', note: `Lookup failed: ${e.message}` }); }
+  }
+  return out;
 }

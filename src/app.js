@@ -1,6 +1,6 @@
 import { compareDocs, compareAgainstCorpus, matchedWords, DEFAULT_STOP_SHINGLES, excludedSpans } from './sim.js';
 import { extractText } from './files.js';
-import { fetchInternetSources, extractReferences } from './internet.js';
+import { fetchInternetSources, extractReferences, findOpenCopies } from './internet.js';
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pct = x => (x * 100).toFixed(1) + '%';
@@ -65,7 +65,7 @@ async function run() {
   const excludedNames = new Set(corpus.filter(c => !c.included).map(c => c.name));
   const corp = compareAgainstCorpus(a, corpus, settings, excludedNames);
   const mainWords = main ? matchedWords(a, main.matches) : 0;
-  const report = { tool: 'PlagTrace', version: '0.6.4', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + Semantic Scholar only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + Semantic Scholar only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
+  const report = { tool: 'PlagTrace', version: '0.7.0', generatedAt: new Date().toISOString(), settings, scope: hasB ? 'Document A vs Document B + supplied / internet sources. Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.' : 'Document A vs supplied / internet sources only (no Document B). Internet sources are Wikipedia + DOAJ + OpenAlex + Semantic Scholar (best effort) only, not the whole web.', inputHashes: { docA: await sha256(a), docB: hasB ? await sha256(b) : null }, mainPair: main, corpus: corp, removedSources: [...new Set([...removedNames, ...corpus.filter(c => !c.included).map(c => c.name)])], removedSourcesNote: 'Fully removed this session plus sources unticked for this run. Removal recalculates scores; it does not hide history.', reviewerDecisions: null };
   const r = main;
   const allMatches = main ? main.matches : corp.perSource.flatMap(p => p.matches);
   const allExcluded = main ? [...main.excluded.docA, ...main.excluded.docB] : excludedSpans(a, settings);
@@ -100,7 +100,7 @@ async function run() {
   <p><strong>Read this before the number:</strong> ${pct(r.coveredPercent)} is the share of Document A covered by matched passages <em>under the settings above, against the documents you supplied</em>. It is not a misconduct score, not an AI-authorship percentage, and not a web-wide result. Wording like "no plagiarism found" is deliberately not used here: this tool can only say "no passage met the threshold in the supplied documents".</p>
   <dl class="scores"><div><dt>Jaccard (shingles)</dt><dd>${r.jaccard}</dd></div><div><dt>Containment A in B</dt><dd>${r.containmentAinB}</dd></div><div><dt>Containment B in A</dt><dd>${r.containmentBinA}</dd></div><div><dt>Winnowing overlap</dt><dd>${r.winnowingOverlap}</dd></div><div><dt>TF-IDF cosine</dt><dd>${r.tfidfCosine}</dd></div></dl>
   <p class="gloss"><strong>What these numbers mean, in plain words:</strong> Jaccard = the share of word-chunks common to both documents. Containment = the share of one document's chunks found in the other. Winnowing overlap = the share of fingerprints (a shortlist of chunks) that match. TF-IDF cosine = similarity weighted by how distinctive each word is. Band is <em>not</em> a judgement: high means the longest match is at least 200 characters or Jaccard is at least 0.5; medium means longest at least 80 characters or Jaccard at least 0.2; low means some overlap below that; inconclusive means no passage met the threshold. A high band is still not guilt.</p>
-  <p>${esc(r.plainLanguage)}</p>` : `<div class="warn" role="alert"><strong>Do not submit based on this result alone.</strong> ${corp.unionCoveredPercent === 0 ? 'A 0% here does NOT mean your paper is clean. ' : ''}This check searched Wikipedia (and, when available, Semantic Scholar abstracts) only. It did NOT check journal articles, books, publisher databases, or other students' work — the sources university checkers use. A paper can score 0% here and still match a journal article. Check your cited sources yourself, and never treat this as a Turnitin result.</div><p>No Document B was supplied, so no A-vs-B score is shown. The per-source cards below — including any Wikipedia / Semantic Scholar sources fetched above — are the result. Union coverage across those sources: <strong>${pct(corp.unionCoveredPercent)}</strong>.</p>`}
+  <p>${esc(r.plainLanguage)}</p>` : `<div class="warn" role="alert"><strong>Do not submit based on this result alone.</strong> ${corp.unionCoveredPercent === 0 ? 'A 0% here does NOT mean your paper is clean. ' : ''}This check searched Wikipedia, DOAJ and OpenAlex abstracts (plus Semantic Scholar when it responds) only. It did NOT check journal articles, books, publisher databases, or other students' work — the sources university checkers use. A paper can score 0% here and still match a journal article. Check your cited sources yourself, and never treat this as a Turnitin result.</div><p>No Document B was supplied, so no A-vs-B score is shown. The per-source cards below — including any Wikipedia / DOAJ / OpenAlex / Semantic Scholar sources fetched above — are the result. Union coverage across those sources: <strong>${pct(corp.unionCoveredPercent)}</strong>.</p>`}
   <h3>Sources — one card per source</h3>
   ${sourceCards || '<p>No source with a matching passage. See the fetched-and-compared list below.</p>'}
   ${zeroNote}
@@ -138,11 +138,18 @@ $('netSearch').onclick = async () => {
     const { sources, errors, phrases } = await fetchInternetSources(a);
     for (const s of sources) if (!corpus.some(c => c.name === s.name)) { corpus.push(s); removedNames = removedNames.filter(n => n !== s.name); }
     renderCorpus();
-    $('netStatus').innerHTML = `<p>Searched phrases (these exact phrases were sent to Wikipedia / Semantic Scholar): ${phrases.map(p => `"${esc(p)}"`).join(', ') || 'none'}</p><p>Internet sources added: ${sources.length}. ${errors.length ? 'Notes: ' + errors.map(esc).join(' ') : ''}</p><p>Results below already include these sources — re-run only if you change the documents or settings.</p>`;
+    $('netStatus').innerHTML = `<p>Searched phrases (these exact phrases were sent to Wikipedia, DOAJ, OpenAlex and Semantic Scholar): ${phrases.map(p => `"${esc(p)}"`).join(', ') || 'none'}</p><p>Internet sources added: ${sources.length}. ${errors.length ? 'Notes: ' + errors.map(esc).join(' ') : ''}</p><p>Results below already include these sources — re-run only if you change the documents or settings.</p>`;
     if (sources.length) await run();
   } catch (e) { $('netStatus').innerHTML = `<p role="alert">Internet search failed: ${esc(e.message)}. Local check still works — this failure is not a "no match".</p>`; }
   $('netSearch').disabled = false; $('netSearch').textContent = 'Search internet sources';
-};
+}
+$('oaSearch').onclick = async () => {
+  const a = $('docA').value;
+  try {
+    const out = await findOpenCopies(a, $('oaEmail').value.trim());
+    $('oaStatus').innerHTML = out.length ? `<p>Open-access lookup for ${out.length} DOI(s) found in your document (this finds copies, it does not compare text):</p><ul>${out.map(o => `<li>${esc(o.doi)} — ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.note)}</a>` : esc(o.note)}</li>`).join('')}</ul>` : '<p>No DOIs found in Document A.</p>';
+  } catch (e) { $('oaStatus').innerHTML = `<p role="alert">${esc(e.message)}</p>`; }
+};;
 $('run').onclick = run;
 $('stopList').value = DEFAULT_STOP_SHINGLES.join('\n');
 function updateSettingsBadge() {

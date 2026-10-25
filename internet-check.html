@@ -10,17 +10,17 @@
 <h2>How it works</h2>
 <ol>
 <li>Paste your text, click <strong>Search internet sources</strong>.</li>
-<li>PlagTrace takes up to 3 distinctive sentences, truncates each to 12 words, and sends <strong>only those phrases</strong> to Wikipedia's public API and, best effort, Semantic Scholar.</li>
-<li>Up to 6 Wikipedia articles are fetched and compared locally, in your browser, with a link to each source.</li>
+<li>PlagTrace takes up to 3 distinctive sentences, truncates each to 12 words, and sends <strong>only those phrases</strong> to Wikipedia, DOAJ, OpenAlex and, best effort, Semantic Scholar.</li>
+<li>Up to 12 articles/abstracts are fetched and compared locally, in your browser, with a link to each source (up to 6 Wikipedia articles, plus DOAJ and OpenAlex abstracts).</li>
 <li>The exact phrases sent are shown on screen. Full documents are never uploaded.</li>
 </ol>
 <h2>What it does not search</h2>
 <p>Not the whole web. Not Turnitin's database. Not publisher paywalled databases. Not Chegg or CourseHero — those are paywalled, and no free open tool can search them. If a match lives only there, PlagTrace will not find it.</p>
 <p><strong>Have a specific page in mind?</strong> If you can open a page (a blog, a CourseHero page you have access to, a classmate's paper), copy its text and paste it as Document B or as a reference source. That is how you check a specific source PlagTrace cannot fetch itself.</p>
 <h2>Rate limits, reported not hidden</h2>
-<p>Semantic Scholar returned HTTP 429 from a shared network in testing (no API key), OpenAlex did the same, and arXiv returned HTTP 503. Those failures are shown in the tool — they are never read as "no match". Wikipedia worked with no key in the same test.</p>
+<p>Semantic Scholar and OpenAlex returned HTTP 429 from a shared network in testing (no API key). Those failures are shown in the tool — they are never read as "no match". Wikipedia and DOAJ worked with no key in the same test. arXiv, Europe PMC, CORE and Open Library return no CORS header, so a browser cannot fetch them from a static site at all — they are not integrated, and that limit is stated here rather than hidden.</p>
 <h2>What "no match" means here</h2>
-<p>"No match in the Wikipedia articles fetched" — never "no match anywhere".</p>
+<p>"No match in the articles/abstracts fetched" — never "no match anywhere".</p>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.6.4 · MIT · <a href="changelog.html">Changelog</a> · <a href="security.html">Security</a></p></footer></body></html>
+<footer><p>PlagTrace v0.7.0 · MIT · <a href="changelog.html">Changelog</a> · <a href="security.html">Security</a></p></footer></body></html>

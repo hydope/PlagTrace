@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { searchPhrases, extractReferences } from '../src/internet.js';
+import { searchPhrases, extractReferences, invertAbstract } from '../src/internet.js';
 test('searchPhrases returns up to 3 distinct 12-word queries from long sentences', () => {
   const text = 'Photosynthesis is the process by which green plants convert sunlight, water, and carbon dioxide into oxygen and glucose for growth. The light-dependent reactions take place in the thylakoid membranes of chloroplasts in plant cells. Short one.';
   const q = searchPhrases(text);
@@ -52,4 +52,10 @@ test('extractReferences returns only References-section lines with a year', () =
 });
 test('extractReferences returns [] with no References section', () => {
   assert.deepEqual(extractReferences('Just a normal essay with no bibliography at all.'), []);
+});
+
+
+test('invertAbstract reconstructs text from OpenAlex inverted index', () => {
+  assert.equal(invertAbstract({ hello: [0], world: [1] }), 'hello world');
+  assert.equal(invertAbstract(null), '');
 });

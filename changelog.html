@@ -6,6 +6,15 @@
 <nav><a href="index.html">Compare</a> · <a href="accuracy.html">Accuracy</a> · <a href="internet-check.html">Internet check</a> · <a href="comparison.html">Comparison</a> · <a href="limitations.html">Limitations</a></nav></header>
 <main>
 <h1>Changelog</h1>
+<h2>v0.7.0 — 2026-10-25 (free-database integration, engine and accuracy numbers unchanged)</h2>
+<ul>
+<li>DOAJ integrated: open-access journal abstracts are now searched with your phrases (first 6 words, because a 12-word DOAJ query returns nothing) and compared locally, with a link to each article. Verified on the real paper: 4 DOAJ abstracts added (e.g. "Short-term thinking, long-term costs: How managerial myopia undermines green innovation"); 0-match abstracts collapse to one line under v0.6.4, they do not get empty cards. Pre-publish fix: DOAJ article links now correctly prefer the fulltext URL and fall back to the DOI URL — the first build could have produced a broken doi.org/undefined link for articles without a DOI.</li>
+<li>Pre-publish fix: the JSON report scope and the results warning now correctly say Wikipedia + DOAJ + OpenAlex + Semantic Scholar, not the old "Wikipedia + Semantic Scholar only" wording.</li>
+<li>OpenAlex integrated, best effort: inverted-index abstracts are reconstructed locally when the API responds. It returned HTTP 429 on this shared network, so that failure is reported, never read as "no match".</li>
+<li>Unpaywall DOI lookup (optional): enter a real email in step 2 and PlagTrace lists open-access copies for the DOIs in your References. This finds copies only — it does not compare text, and it never claims to. Example.com addresses are rejected, as Unpaywall requires.</li>
+<li>Total internet source cap raised from 6 to 12 so the new databases are not crowded out by Wikipedia.</li>
+<li>NOT integrated, with evidence: Crossref (200, CORS *, but 0/5 items had an abstract — metadata only, nothing to compare); arXiv, Europe PMC, CORE, Open Library (200 in Node, but no CORS header, so a browser cannot fetch them from a static site at all); Wikidata (metadata only, no text). A server proxy would fix CORS but would break the no-upload privacy model, so it is not used.</li>
+</ul>
 <h2>v0.6.4 — 2026-10-25 (fixes for the 0% academic-paper run, engine and accuracy numbers unchanged)</h2>
 <ul>
 <li>0-match internet sources no longer get full empty cards: they collapse into one line ("X source(s) fetched and compared locally — no passage met the threshold"), with an explanation that Wikipedia keyword search returns related articles, not exact-phrase matches. Sources with a real match still get full cards.</li>
@@ -66,4 +75,4 @@
 <ul><li>Per-source coverage, source removal with audit trail, mandatory reviewer decisions, legitimate fix-it guidance. No AI % by design.</li></ul>
 <p><a href="index.html">Back to the checker</a></p>
 </main>
-<footer><p>PlagTrace v0.6.4 · MIT</p></footer></body></html>
+<footer><p>PlagTrace v0.7.0 · MIT</p></footer></body></html>
