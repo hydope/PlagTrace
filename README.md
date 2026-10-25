@@ -1,5 +1,7 @@
 # PlagTrace
 
+**Live site:** https://hydope.github.io/PlagTrace/ — repo: https://github.com/hydope/PlagTrace (public, published 2026-10-24).
+
 Privacy-first similarity screening that runs entirely in your browser.
 Paste or drop two or more documents, get **per-source** similarity evidence
 with highlighted passages, character offsets, matched-character coverage %,
@@ -47,7 +49,9 @@ Pronounceable, non-generic, and it contains none of the banned generic words.
 Method: one web search per name with the name in quotes plus GitHub/npm/PyPI.
 A web search is **not** a registry authority: a zero here means no exact match
 surfaced, not a legal guarantee. The registry 404 check must be re-run at repo
-creation time, before publishing. No GitHub repo was created in this build.
+creation time, before publishing. That check was re-run at creation on
+2026-10-24: `hydope/PlagTrace` returned 404 immediately before creation,
+and the repo was then created public under that name.
 
 | Name | Exact-match web result | Verdict |
 |---|---|---|
